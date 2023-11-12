@@ -15,7 +15,7 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
     <>
    
       <div ref={ref} className="booking-container my-8 mx-auto px-4 max-w-7xl">
-        <h1 className="text-5xl font-bold mb-6 text-shadow text-center">Booking</h1>
+        <h1 className="text-3xl sm:text-1xl md:text-5xl lg:text-6xl xl:text-6xl font-bold mb-6 text-shadow text-center pt-10">Booking</h1>
         <div className="flex flex-col lg:flex-row justify-center gap-4 w-full">
           <div className="bike-selection-area cursor-pointer mb-4 lg:mb-0 lg:w-2/4" onClick={toggleDetails}>
             <BikeSelector />
