@@ -2,7 +2,7 @@
 // BookingForm.test.tsx
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react';
-import BookingForm from '../src/app/components/BookingForm';
+import BookingForm from '../BookingForm';
 
 describe('BookingForm XSS Protection', () => {
   test('input fields should not execute script', () => {
