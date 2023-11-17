@@ -35,5 +35,13 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+
+# Firebase
+/firebaseConfig.js
+/serviceAccountKey.json
+/.firebaserc
+/firebase.json
+/.firebase
+
 # muut
 seminaari.md

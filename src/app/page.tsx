@@ -19,7 +19,6 @@ export default function Page() {
     <>
       
       <MainSection onBookNowClick={scrollToBooking} />
-
       <BookingSection ref={bookingSectionRef} />
       <AboutSection />
       <TrailMapsSection />

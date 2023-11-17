@@ -10,10 +10,9 @@ import 'swiper/css/pagination';
 
 // Common image properties
 const commonImageProps = {
-  width: 900,
+  width: 1500,
   height: 500,
   quality: 100,
-  layout: "responsive" as const, // Using "as const" to ensure TypeScript understands it's a literal
 };
 
 // Images array
