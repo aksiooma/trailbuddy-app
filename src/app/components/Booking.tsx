@@ -99,6 +99,17 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         return dates;
     }
 
+    const processReservationSnapshot = (snapshot: QuerySnapshot, bikeId: string) => {
+        let newReservations = snapshot.docs.map(doc => ({ ...doc.data() as Reservation, id: doc.id }));
+    
+        const deduplicatedReservations = mergeAndDeduplicateReservations(newReservations, allReservations);
+        setAllReservations(deduplicatedReservations);
+    
+        // Use the debounced function instead of the direct call
+        debouncedRecalculateAvailability();
+    };
+    
+
     useEffect(() => {
         if (!selectedBike || !startDate || !endDate) return;
 
@@ -143,13 +154,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
 
     
 
-    const processReservationSnapshot = (snapshot: QuerySnapshot, bikeId: string) => {
-        let newReservations = snapshot.docs.map(doc => ({ ...doc.data() as Reservation, id: doc.id }));
-
-        const deduplicatedReservations = mergeAndDeduplicateReservations(newReservations, allReservations);
-        setAllReservations(deduplicatedReservations);
-        recalculateAvailability();
-    };
+    
 
     const mergeAndDeduplicateReservations = (newReservations: Reservation[], existingReservations: Reservation[]) => {
       ;
