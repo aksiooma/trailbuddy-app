@@ -35,7 +35,7 @@ interface Reservation {
     startDate: Timestamp;
     endDate: Timestamp;
     quantity: number;
-   
+
 }
 
 const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout }) => {
@@ -50,6 +50,13 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     const [isLoading, setIsLoading] = useState(true);
     const [allReservations, setAllReservations] = useState<Reservation[]>([]);
     const isAddToBasketDisabled = !startDate || selectedQuantity <= 0 || selectedBikeAvailableStock <= 0;
+
+    const [debouncedStartDate, setDebouncedStartDate] = useState(startDate);
+    const [debouncedEndDate, setDebouncedEndDate] = useState(endDate)
+    const [startQueryUpdated, setStartQueryUpdated] = useState(false);
+    const [endQueryUpdated, setEndQueryUpdated] = useState(false);
+    const [latestSnapshot, setLatestSnapshot] = useState<QuerySnapshot | null>(null);
+    const [currentBikeId, setCurrentBikeId] = useState<string | null>(null);
 
 
     useEffect(() => {
@@ -79,7 +86,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                 id: doc.id
             }));
             setAllReservations(updatedReservations);
-           
+
         });
 
         return () => unsubscribe(); // Cleanup function to unsubscribe on unmount
@@ -99,89 +106,19 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         return dates;
     }
 
-    const processReservationSnapshot = (snapshot: QuerySnapshot, bikeId: string) => {
-        let newReservations = snapshot.docs.map(doc => ({ ...doc.data() as Reservation, id: doc.id }));
-    
-        const deduplicatedReservations = mergeAndDeduplicateReservations(newReservations, allReservations);
-        setAllReservations(deduplicatedReservations);
-    
-        // Use the debounced function instead of the direct call
-        debouncedRecalculateAvailability();
-    };
-    
+    // Debounce function
+    function debounce<F extends (...args: any[]) => void>(func: F, waitFor: number): (...args: Parameters<F>) => ReturnType<F> {
+        let timeout: ReturnType<typeof setTimeout> | null = null;
 
-    useEffect(() => {
-        if (!selectedBike || !startDate || !endDate) return;
-
-        const listenToReservationsForBikeAndDateRange = (bikeId: string, start: Date, end: Date) => {
-            const startTimestamp = Timestamp.fromDate(start);
-            const endTimestamp = Timestamp.fromDate(end);
-           
-    
-            const startQuery = query(
-                collection(db, 'reservations'),
-                where('bikeId', '==', bikeId),
-                where('startDate', '<=', endTimestamp)
-            );
-    
-            const endQuery = query(
-                collection(db, 'reservations'),
-                where('bikeId', '==', bikeId),
-                where('endDate', '>=', startTimestamp)
-            );
-    
-    
-            const startListener = onSnapshot(startQuery, (snapshot) => {
-                processReservationSnapshot(snapshot, bikeId);
-            });
-    
-            const endListener = onSnapshot(endQuery, (snapshot) => {
-                processReservationSnapshot(snapshot, bikeId);
-            });
-    
-            return () => {
-                startListener(); // Unsubscribing from the listener
-                endListener();
-            };
-        };
-
-
-        //  unsubscribe function
-        const unsubscribe = listenToReservationsForBikeAndDateRange(selectedBike.id, startDate, endDate);
-
-        return () => unsubscribe(); // Cleanup listener on unmount or dependency change
-    }, [selectedBike, startDate, endDate]);
-
-    
-
-    
-
-    const mergeAndDeduplicateReservations = (newReservations: Reservation[], existingReservations: Reservation[]) => {
-      ;
-
-        const merged = [...existingReservations, ...newReservations];
-      
-        const deduplicated = merged.reduce((acc, current) => {
-          
-            // Check if there's an existing item with the same bikeId, startDate, and endDate
-            if (!acc.some(item =>
-                item.bikeId === current.bikeId &&
-                item.startDate.seconds === current.startDate.seconds &&
-                item.endDate.seconds === current.endDate.seconds)) {
-               
-                acc.push(current);
-            } else {
-               
+        return function (...args: Parameters<F>): ReturnType<F> {
+            if (timeout !== null) {
+                clearTimeout(timeout);
+                timeout = null;
             }
-            return acc;
-        }, [] as Reservation[]);
-
-        return deduplicated;
-    };
-
-
-    
-
+            timeout = setTimeout(() => func(...args), waitFor);
+            return undefined as unknown as ReturnType<F>;
+        };
+    }
 
     const recalculateAvailability = useCallback(() => {
         let newAvailabilityData: AvailabilityData = {};
@@ -218,7 +155,117 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         setDateAvailability(newAvailabilityData);
     }, [allReservations, availableBikes]);
 
+    // a debounced version of recalculateAvailability
+    const debouncedRecalculateAvailability = useCallback(
 
+        debounce(() => {
+            recalculateAvailability();
+        }, 500),
+        // all dependencies that trigger a recalculation
+        [recalculateAvailability]
+    );
+
+
+
+    const processReservationSnapshot = useCallback(() => {
+        if (latestSnapshot && currentBikeId) {
+            let newReservations = latestSnapshot.docs.map(doc => ({ ...doc.data() as Reservation, id: doc.id }));
+
+
+            const deduplicatedReservations = mergeAndDeduplicateReservations(newReservations, allReservations);
+            setAllReservations(deduplicatedReservations);
+            debouncedRecalculateAvailability();
+        }
+    }, [latestSnapshot, currentBikeId, allReservations]);
+
+
+
+    // Use the debounced function in useEffect
+    useEffect(() => {
+        debouncedRecalculateAvailability();
+    }, [debouncedRecalculateAvailability]);
+
+
+    // Update debounced start and end dates after a delay
+    useEffect(() => {
+        const startTimer = setTimeout(() => setDebouncedStartDate(startDate), 500);
+        const endTimer = setTimeout(() => setDebouncedEndDate(endDate), 500);
+
+        return () => {
+            clearTimeout(startTimer);
+            clearTimeout(endTimer);
+        };
+    }, [startDate, endDate]);
+
+
+    useEffect(() => {
+        if (!selectedBike || !debouncedStartDate || !debouncedEndDate) return;
+
+        const startTimestamp = Timestamp.fromDate(debouncedStartDate);
+        const endTimestamp = Timestamp.fromDate(debouncedEndDate);
+
+        const startQuery = query(
+            collection(db, 'reservations'),
+            where('bikeId', '==', selectedBike.id),
+            where('startDate', '<=', endTimestamp)
+        );
+
+        const endQuery = query(
+            collection(db, 'reservations'),
+            where('bikeId', '==', selectedBike.id),
+            where('endDate', '>=', startTimestamp)
+        );
+
+        // Listeners setting the state
+        const startListener = onSnapshot(startQuery, (snapshot) => {
+            setLatestSnapshot(snapshot);
+            setCurrentBikeId(selectedBike.id);
+            setStartQueryUpdated(true);
+        });
+
+        const endListener = onSnapshot(endQuery, (snapshot) => {
+            setLatestSnapshot(snapshot);
+            setCurrentBikeId(selectedBike.id);
+            setEndQueryUpdated(true);
+        });
+
+        return () => {
+            startListener();
+            endListener();
+        };
+    }, [selectedBike, debouncedStartDate, debouncedEndDate]);
+
+    useEffect(() => {
+        if (startQueryUpdated || endQueryUpdated) {
+            processReservationSnapshot();
+            setStartQueryUpdated(false);
+            setEndQueryUpdated(false);
+        }
+    }, [startQueryUpdated, endQueryUpdated, processReservationSnapshot]);
+
+
+    const mergeAndDeduplicateReservations = (newReservations: Reservation[], existingReservations: Reservation[]) => {
+        ;
+
+        const merged = [...existingReservations, ...newReservations];
+
+        const deduplicated = merged.reduce((acc, current) => {
+
+            // Check if there's an existing item with the same bikeId, startDate, and endDate
+            if (!acc.some(item =>
+                item.bikeId === current.bikeId &&
+                item.startDate.seconds === current.startDate.seconds &&
+                item.endDate.seconds === current.endDate.seconds)) {
+
+                acc.push(current);
+            } else {
+
+            }
+            return acc;
+        }, [] as Reservation[]);
+
+        return deduplicated;
+    };
 
     // fetchReservations defined outside of useEffect
     const fetchReservations = async () => {
@@ -236,39 +283,6 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         }
         setIsLoading(false);
     };
-
-    // Debounce function
-    function debounce<F extends (...args: any[]) => void>(func: F, waitFor: number): (...args: Parameters<F>) => ReturnType<F> {
-        let timeout: ReturnType<typeof setTimeout> | null = null;
-
-        return function (...args: Parameters<F>): ReturnType<F> {
-            if (timeout !== null) {
-                clearTimeout(timeout);
-                timeout = null;
-            }
-            timeout = setTimeout(() => func(...args), waitFor);
-            return undefined as unknown as ReturnType<F>;
-        };
-    }
-
-
-
-    // a debounced version of recalculateAvailability
-    const debouncedRecalculateAvailability = useCallback(
-        
-        debounce(() => {
-            recalculateAvailability();
-        }, 500),
-        // all dependencies that trigger a recalculation
-        [recalculateAvailability]
-    );
-
-
-    // Use the debounced function in useEffect
-    useEffect(() => {
-        debouncedRecalculateAvailability();
-    }, [debouncedRecalculateAvailability]);
-
 
     const handleFetchReservations = useCallback(async () => {
         setIsLoading(true);
@@ -447,21 +461,21 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.5 }}>
-                       
-                                <div className="date"><label className='rounded-lg'>Select Date: </label>
-                                    {selectedBike && (
-                                        <DatePicker
-                                            startDate={startDate}
-                                            endDate={endDate}
-                                            setStartDate={setStartDate}
-                                            setEndDate={setEndDate}
-                                            availabilityData={dateAvailability}
-                                            selectedBike={selectedBike} // Pass the selected bike
-                                        />
-                                    )}
 
-                                </div>
-                            
+                            <div className="date"><label className='rounded-lg'>Select Date: </label>
+                                {selectedBike && (
+                                    <DatePicker
+                                        startDate={startDate}
+                                        endDate={endDate}
+                                        setStartDate={setStartDate}
+                                        setEndDate={setEndDate}
+                                        availabilityData={dateAvailability}
+                                        selectedBike={selectedBike} // Pass the selected bike
+                                    />
+                                )}
+
+                            </div>
+
 
                             {renderQuantitySelector()}
                             <Button color="primary" disabled={isAddToBasketDisabled}
