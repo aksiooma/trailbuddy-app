@@ -2,6 +2,8 @@
 import React from 'react';
 import { BikeDetailProps } from './Types/types'
 import { motion } from 'framer-motion';
+import Image from 'next/image';
+import {commonImageProps} from './Types/types'
 
 
 const BikeDetail: React.FC<BikeDetailProps & { onClose: () => void }> = ({ bike, onClose }) => {
@@ -22,7 +24,7 @@ const BikeDetail: React.FC<BikeDetailProps & { onClose: () => void }> = ({ bike,
                 </svg>
                 </button>
             </motion.div>
-            <img className='img rounded' src={bike.image} />
+            {bike.image && <Image className='img rounded'  {...commonImageProps} src={bike.image} alt={bike.name}/>}
             <p className="mt-1 text-base text-white-800 mt-3">{bike.desc}</p>
 
         </motion.div>

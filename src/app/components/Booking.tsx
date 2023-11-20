@@ -163,19 +163,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     };
 
 
-    // Debounce function
-    function debounce<F extends (...args: any[]) => void>(func: F, waitFor: number): (...args: Parameters<F>) => ReturnType<F> {
-        let timeout: ReturnType<typeof setTimeout> | null = null;
-
-        return function (...args: Parameters<F>): ReturnType<F> {
-            if (timeout !== null) {
-                clearTimeout(timeout);
-                timeout = null;
-            }
-            timeout = setTimeout(() => func(...args), waitFor);
-            return undefined as unknown as ReturnType<F>;
-        };
-    }
+    
 
 
     const recalculateAvailability = useCallback(() => {
@@ -211,7 +199,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
 
 
         setDateAvailability(newAvailabilityData);
-    }, [basket, allReservations, availableBikes]);
+    }, [allReservations, availableBikes]);
 
 
 
@@ -225,7 +213,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         const unsubscribe = listenToReservationsForBikeAndDateRange(selectedBike.id, startDate, endDate);
 
         return () => unsubscribe(); // Cleanup listener on unmount or dependency change
-    }, [selectedBike, startDate, endDate]);
+    }, [selectedBike, startDate, endDate, listenToReservationsForBikeAndDateRange]);
 
 
     // fetchReservations defined outside of useEffect
@@ -245,14 +233,30 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         setIsLoading(false);
     };
 
+    // Debounce function
+    function debounce<F extends (...args: any[]) => void>(func: F, waitFor: number): (...args: Parameters<F>) => ReturnType<F> {
+        let timeout: ReturnType<typeof setTimeout> | null = null;
+
+        return function (...args: Parameters<F>): ReturnType<F> {
+            if (timeout !== null) {
+                clearTimeout(timeout);
+                timeout = null;
+            }
+            timeout = setTimeout(() => func(...args), waitFor);
+            return undefined as unknown as ReturnType<F>;
+        };
+    }
+
+
 
     // a debounced version of recalculateAvailability
     const debouncedRecalculateAvailability = useCallback(
+        
         debounce(() => {
             recalculateAvailability();
         }, 500),
         // all dependencies that trigger a recalculation
-        [recalculateAvailability, basket, allReservations, selectedBike, availableBikes]
+        [recalculateAvailability]
     );
 
 

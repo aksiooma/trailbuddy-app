@@ -26,7 +26,7 @@ const Login: React.FC<BookingProps> = ({ selectedBike }) => {
 
         // Cleanup subscription on unmount
         return () => unsubscribe();
-    }, []);
+    }, [auth]);
 
 
     const handleAnonymousSignIn = async () => {

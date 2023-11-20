@@ -7,13 +7,7 @@ import Image from 'next/image';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/pagination';
-
-// Common image properties
-const commonImageProps = {
-  width: 1500,
-  height: 500,
-  quality: 100,
-};
+import {commonImageProps} from './Types/types'
 
 // Images array
 const images = [

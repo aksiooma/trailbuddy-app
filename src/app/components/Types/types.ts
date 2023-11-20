@@ -29,6 +29,13 @@ export type AvailabilityData = {
   };
 };
 
+// Common image properties
+export const commonImageProps = {
+  width: 1500,
+  height: 500,
+  quality: 100,
+};
+
 
 // export interface SelectedBike {
 //   bike: Bike;

@@ -1,15 +1,20 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "target": "es2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "module": "esnext",
+    "moduleResolution": "node",
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "outDir": "lib",
     "sourceMap": true,
     "strict": true,
-    "target": "es2017"
+    "jsx": "preserve",
+    "esModuleInterop": true,
+    "isolatedModules": true,
+    "noEmit": true
   },
   "compileOnSave": true,
-  "include": [
-    "src"
-  ]
+  "include": ["next-env.d.ts", "src"],
+  "exclude": ["node_modules"]
 }
