@@ -11,7 +11,7 @@ export interface Bike {
 
 export interface BikeSelectorProps {
   onSelectBike: (bike: Bike) => void;
-  selectedBike: Bike | null; 
+  selectedBike: Bike | null;
 }
 
 export interface BikeDetailProps {
@@ -24,8 +24,9 @@ export interface BookingProps {
 }
 
 export type AvailabilityData = {
-  [date: string]: number; 
-  
+  [date: string]: {
+    [bikeId: string]: number;
+  };
 };
 
 
