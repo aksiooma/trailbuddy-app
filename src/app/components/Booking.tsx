@@ -155,6 +155,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         setDateAvailability(newAvailabilityData);
     }, [allReservations, availableBikes]);
 
+
     // a debounced version of recalculateAvailability
     const debouncedRecalculateAvailability = useCallback(
 
@@ -162,7 +163,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
             recalculateAvailability();
         }, 500),
         // all dependencies that trigger a recalculation
-        [recalculateAvailability]
+        [recalculateAvailability, debounce]
     );
 
 
@@ -176,7 +177,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
             setAllReservations(deduplicatedReservations);
             debouncedRecalculateAvailability();
         }
-    }, [latestSnapshot, currentBikeId, allReservations]);
+    }, [latestSnapshot, currentBikeId, allReservations, debouncedRecalculateAvailability]);
 
 
 
