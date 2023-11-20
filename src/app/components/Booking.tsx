@@ -17,6 +17,7 @@ interface BookingFlowProps {
     onLogout: () => void;
 }
 
+
 // Define the structure for a reservation item
 interface ReservationItem {
     bikeId: string;
@@ -27,15 +28,15 @@ interface ReservationItem {
     reservationId?: string; // ID of the reservation document
 }
 
+
 interface Reservation {
     id: any;
     bikeId: string;
     startDate: Timestamp;
     endDate: Timestamp;
     quantity: number;
-    // Add other fields as needed
+   
 }
-
 
 const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout }) => {
 
@@ -48,10 +49,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     const [dateAvailability, setDateAvailability] = useState<AvailabilityData>({});
     const [isLoading, setIsLoading] = useState(true);
     const [allReservations, setAllReservations] = useState<Reservation[]>([]);
-
     const isAddToBasketDisabled = !startDate || selectedQuantity <= 0 || selectedBikeAvailableStock <= 0;
-
-
 
 
     useEffect(() => {
@@ -87,7 +85,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         return () => unsubscribe(); // Cleanup function to unsubscribe on unmount
     }, []);
 
-
+    //DateRange for recalculating the availability for datepicker
     function generateDateRange(start: Date, end: Date) {
         let dates = [];
         let currentDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
@@ -165,7 +163,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     };
 
 
-    // Debounce function with TypeScript typings
+    // Debounce function
     function debounce<F extends (...args: any[]) => void>(func: F, waitFor: number): (...args: Parameters<F>) => ReturnType<F> {
         let timeout: ReturnType<typeof setTimeout> | null = null;
 
@@ -223,7 +221,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     useEffect(() => {
         if (!selectedBike || !startDate || !endDate) return;
 
-        // This now correctly receives an unsubscribe function
+        //  unsubscribe function
         const unsubscribe = listenToReservationsForBikeAndDateRange(selectedBike.id, startDate, endDate);
 
         return () => unsubscribe(); // Cleanup listener on unmount or dependency change
@@ -248,12 +246,12 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     };
 
 
-    // Create a debounced version of recalculateAvailability
+    // a debounced version of recalculateAvailability
     const debouncedRecalculateAvailability = useCallback(
         debounce(() => {
             recalculateAvailability();
         }, 500),
-        // Include all dependencies that trigger a recalculation
+        // all dependencies that trigger a recalculation
         [recalculateAvailability, basket, allReservations, selectedBike, availableBikes]
     );
 
