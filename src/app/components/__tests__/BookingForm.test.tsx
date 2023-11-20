@@ -11,7 +11,6 @@ jest.mock('firebase/auth', () => ({
  
 }));
 
-
 describe('BookingForm XSS Protection', () => {
   test('input fields should not execute script', () => {
     const { getByPlaceholderText, container } = render(<BookingForm />);

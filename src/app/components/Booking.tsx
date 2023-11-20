@@ -99,37 +99,49 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         return dates;
     }
 
-    const listenToReservationsForBikeAndDateRange = (bikeId: string, start: Date, end: Date) => {
-        const startTimestamp = Timestamp.fromDate(start);
-        const endTimestamp = Timestamp.fromDate(end);
-       
+    useEffect(() => {
+        if (!selectedBike || !startDate || !endDate) return;
 
-        const startQuery = query(
-            collection(db, 'reservations'),
-            where('bikeId', '==', bikeId),
-            where('startDate', '<=', endTimestamp)
-        );
-
-        const endQuery = query(
-            collection(db, 'reservations'),
-            where('bikeId', '==', bikeId),
-            where('endDate', '>=', startTimestamp)
-        );
-
-
-        const startListener = onSnapshot(startQuery, (snapshot) => {
-            processReservationSnapshot(snapshot, bikeId);
-        });
-
-        const endListener = onSnapshot(endQuery, (snapshot) => {
-            processReservationSnapshot(snapshot, bikeId);
-        });
-
-        return () => {
-            startListener(); // Unsubscribing from the listener
-            endListener();
+        const listenToReservationsForBikeAndDateRange = (bikeId: string, start: Date, end: Date) => {
+            const startTimestamp = Timestamp.fromDate(start);
+            const endTimestamp = Timestamp.fromDate(end);
+           
+    
+            const startQuery = query(
+                collection(db, 'reservations'),
+                where('bikeId', '==', bikeId),
+                where('startDate', '<=', endTimestamp)
+            );
+    
+            const endQuery = query(
+                collection(db, 'reservations'),
+                where('bikeId', '==', bikeId),
+                where('endDate', '>=', startTimestamp)
+            );
+    
+    
+            const startListener = onSnapshot(startQuery, (snapshot) => {
+                processReservationSnapshot(snapshot, bikeId);
+            });
+    
+            const endListener = onSnapshot(endQuery, (snapshot) => {
+                processReservationSnapshot(snapshot, bikeId);
+            });
+    
+            return () => {
+                startListener(); // Unsubscribing from the listener
+                endListener();
+            };
         };
-    };
+
+
+        //  unsubscribe function
+        const unsubscribe = listenToReservationsForBikeAndDateRange(selectedBike.id, startDate, endDate);
+
+        return () => unsubscribe(); // Cleanup listener on unmount or dependency change
+    }, [selectedBike, startDate, endDate]);
+
+    
 
     const processReservationSnapshot = (snapshot: QuerySnapshot, bikeId: string) => {
         let newReservations = snapshot.docs.map(doc => ({ ...doc.data() as Reservation, id: doc.id }));
@@ -201,19 +213,6 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         setDateAvailability(newAvailabilityData);
     }, [allReservations, availableBikes]);
 
-
-
-
-
-
-    useEffect(() => {
-        if (!selectedBike || !startDate || !endDate) return;
-
-        //  unsubscribe function
-        const unsubscribe = listenToReservationsForBikeAndDateRange(selectedBike.id, startDate, endDate);
-
-        return () => unsubscribe(); // Cleanup listener on unmount or dependency change
-    }, [selectedBike, startDate, endDate, listenToReservationsForBikeAndDateRange]);
 
 
     // fetchReservations defined outside of useEffect
