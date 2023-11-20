@@ -22,29 +22,39 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
     selectedBike
 }) => {
     const renderDayContents = (day: number, date: Date) => {
-        const dateString = date.toISOString().split('T')[0];
-        const availableStock = availabilityData[dateString] ?? selectedBike?.stock ?? 0; // Safeguard against undefined
+        // Format the date as YYYY-MM-DD using local time
+        const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        let availableStock = selectedBike?.stock ?? 0;
+    
+        // Check availability for the specific bike
+        if (selectedBike && availabilityData[dateString] && availabilityData[dateString][selectedBike.id] !== undefined) {
+            availableStock = availabilityData[dateString][selectedBike.id];
+        }
+    
+        // Compare dates in local time
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        console.log(JSON.stringify(availabilityData) + "datepicker")
-
+        const currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+        // Determine the style based on availability
         let styles;
-        if (date < today) {
-            styles = 'bg-gray-200'; // Style for dates in the past
+        if (currentDate < today) {
+            styles = 'bg-gray-200'; // Past dates
         } else if (availableStock === 0) {
-            styles = 'bg-red-200'; // No availability
+            styles = 'bg-red-400'; // Fully booked
         } else if (availableStock < (selectedBike?.stock ?? 0)) {
-            styles = 'bg-yellow-200'; // Partial availability
+            styles = 'bg-yellow-500'; // Partially available
         } else {
-            styles = 'bg-green-200'; // Full availability
+            styles = 'bg-green-500'; // Available
         }
     
         return <div className={`${styles} p-1`}>{day}</div>;
     };
+    
 
     return (
         <DatePicker
-            className='rounded mt-4 p-2'
+            className='rounded mt-4 p-2 w-full'
             selectsRange={true}
             minDate={new Date}// Disable dates before today
             startDate={startDate}

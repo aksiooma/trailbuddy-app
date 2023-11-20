@@ -17,7 +17,6 @@ export default function Page() {
 
   return (
     <>
-      
       <MainSection onBookNowClick={scrollToBooking} />
       <BookingSection ref={bookingSectionRef} />
       <AboutSection />

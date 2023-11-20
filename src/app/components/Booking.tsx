@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import DatePicker from './DatePicker';
 import { Bike } from './Types/types';
-import { runTransaction, doc, onSnapshot, collection, where, query, serverTimestamp, deleteDoc, getDocs, Timestamp } from "firebase/firestore"
+import { runTransaction, doc, onSnapshot, collection, where, query, serverTimestamp, deleteDoc, getDocs, Timestamp, DocumentData, QuerySnapshot } from "firebase/firestore"
 import db from "./FirestoreInit"
 import { motion } from 'framer-motion';
 import { Button } from '@nextui-org/react';
 import { AvailabilityData } from './Types/types';
 import { User } from "firebase/auth";
+
+
 
 // Define the props expected by BookingFlow
 interface BookingFlowProps {
@@ -25,6 +27,15 @@ interface ReservationItem {
     reservationId?: string; // ID of the reservation document
 }
 
+interface Reservation {
+    id: any;
+    bikeId: string;
+    startDate: Timestamp;
+    endDate: Timestamp;
+    quantity: number;
+    // Add other fields as needed
+}
+
 
 const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout }) => {
 
@@ -35,8 +46,13 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     const [basket, setBasket] = useState<ReservationItem[]>([]);
     const [selectedBikeAvailableStock, setSelectedBikeAvailableStock] = useState<number>(0);
     const [dateAvailability, setDateAvailability] = useState<AvailabilityData>({});
+    const [isLoading, setIsLoading] = useState(true);
+    const [allReservations, setAllReservations] = useState<Reservation[]>([]);
 
     const isAddToBasketDisabled = !startDate || selectedQuantity <= 0 || selectedBikeAvailableStock <= 0;
+
+
+
 
     useEffect(() => {
         // Fetch all the bikes only once on component mount
@@ -49,19 +65,6 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         fetchBikes();
     }, []);
 
-    function generateDateRange(start: Date, end: Date) {
-
-        let dates = [];
-        let currentDate = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
-
-        while (currentDate <= end) {
-            let formattedDate = currentDate.toISOString().split('T')[0]; // YYYY-MM-DD in UTC
-            dates.push(formattedDate);
-            currentDate = new Date(Date.UTC(currentDate.getUTCFullYear(), currentDate.getUTCMonth(), currentDate.getUTCDate() + 1));
-        }
-
-        return dates;
-    }
 
     useEffect(() => {
         if (selectedBike) {
@@ -69,143 +72,213 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         }
     }, [selectedBike]);
 
+
     useEffect(() => {
-        if (selectedBike && startDate && endDate) {
+        // Real-time listener for reservations
+        const unsubscribe = onSnapshot(collection(db, "reservations"), (snapshot) => {
+            const updatedReservations = snapshot.docs.map(doc => ({
+                ...doc.data() as Reservation,
+                id: doc.id
+            }));
+            setAllReservations(updatedReservations);
+           
+        });
 
-            fetchReservationsForBikeAndDateRange(selectedBike.id, startDate, endDate).then(reservations => {
+        return () => unsubscribe(); // Cleanup function to unsubscribe on unmount
+    }, []);
 
 
-                let availabilityData: AvailabilityData = {};
+    function generateDateRange(start: Date, end: Date) {
+        let dates = [];
+        let currentDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
 
-                const allDatesInRange = generateDateRange(startDate, endDate);
-                allDatesInRange.forEach(dateString => {
-                    availabilityData[dateString] = selectedBike.stock;
-                });
-
-                // Update availability based on combined reservations
-                reservations.forEach(({ startDate: resStart, endDate: resEnd, quantity }) => {
-                    const startUTC = new Date(Date.UTC(resStart.toDate().getUTCFullYear(), resStart.toDate().getUTCMonth(), resStart.toDate().getUTCDate()));
-                    const endUTC = new Date(Date.UTC(resEnd.toDate().getUTCFullYear(), resEnd.toDate().getUTCMonth(), resEnd.toDate().getUTCDate()));
-                    const resDatesInRange = generateDateRange(startUTC, endUTC);
-                  
-                    resDatesInRange.forEach(dateString => {
-                        availabilityData[dateString] = Math.max(0, availabilityData[dateString] - quantity);
-                    });
-                });
-                
-                setDateAvailability(availabilityData);
-            });
+        while (currentDate <= end) {
+            let formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+            dates.push(formattedDate);
+            currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
         }
-    }, [selectedBike, startDate, endDate]); // React to changes in selectedBike, startDate, endDate
 
+        return dates;
+    }
 
-
-    //LocalStorage basket
-    useEffect(() => {
-        if (user) {
-            const userBasketKey = `basket_${user.uid}`; // Unique key for each user
-            const savedBasketData = localStorage.getItem(userBasketKey);
-
-            if (savedBasketData) {
-                const { items, timestamp } = JSON.parse(savedBasketData);
-                const currentTime = new Date().getTime();
-                const timeElapsed = currentTime - timestamp;
-
-                // Define the time limit for the basket contents (e.g., 30 minutes)
-                const TIME_LIMIT = 30 * 60 * 1000; // 30 minutes in milliseconds
-
-                if (timeElapsed < TIME_LIMIT) {
-                    // Rehydrate the basket if within the time limit
-                    const rehydratedBasket = items.map((item: { startDate: string | number | Date; endDate: string | number | Date; }) => ({
-                        ...item,
-                        startDate: new Date(item.startDate),
-                        endDate: item.endDate ? new Date(item.endDate) : null
-                    }));
-                    setBasket(rehydratedBasket);
-                } else {
-                    // Clear the basket if the time limit has been exceeded
-                    setBasket([]);
-                    localStorage.removeItem(userBasketKey); // Remove the outdated basket from local storage
-                }
-            }
-        } else {
-            setBasket([]); // Clear the basket if no user is logged in
-        }
-    }, [user]);
-
-
-    const fetchReservationsForBikeAndDateRange = async (bikeId: string, start: Date, end: Date) => {
-
-        // Convert dates to Firestore Timestamps
+    const listenToReservationsForBikeAndDateRange = (bikeId: string, start: Date, end: Date) => {
         const startTimestamp = Timestamp.fromDate(start);
         const endTimestamp = Timestamp.fromDate(end);
+       
 
-        // Query for reservations starting before or on the end date
         const startQuery = query(
             collection(db, 'reservations'),
             where('bikeId', '==', bikeId),
             where('startDate', '<=', endTimestamp)
         );
 
-        // Query for reservations ending after or on the start date
         const endQuery = query(
             collection(db, 'reservations'),
             where('bikeId', '==', bikeId),
             where('endDate', '>=', startTimestamp)
         );
 
-        try {
-            const startQuerySnapshot = await getDocs(startQuery);
-            const endQuerySnapshot = await getDocs(endQuery);
 
-            // Combine and filter the results
-            let combinedReservations = [...startQuerySnapshot.docs, ...endQuerySnapshot.docs];
-            combinedReservations = combinedReservations.filter((doc, index, self) =>
-                index === self.findIndex(t => (
-                    t.id === doc.id && doc.data().endDate >= start && doc.data().startDate <= end
-                ))
+        const startListener = onSnapshot(startQuery, (snapshot) => {
+            processReservationSnapshot(snapshot, bikeId);
+        });
+
+        const endListener = onSnapshot(endQuery, (snapshot) => {
+            processReservationSnapshot(snapshot, bikeId);
+        });
+
+        return () => {
+            startListener(); // Unsubscribing from the listener
+            endListener();
+        };
+    };
+
+    const processReservationSnapshot = (snapshot: QuerySnapshot, bikeId: string) => {
+        let newReservations = snapshot.docs.map(doc => ({ ...doc.data() as Reservation, id: doc.id }));
+
+        const deduplicatedReservations = mergeAndDeduplicateReservations(newReservations, allReservations);
+        setAllReservations(deduplicatedReservations);
+        recalculateAvailability();
+    };
+
+    const mergeAndDeduplicateReservations = (newReservations: Reservation[], existingReservations: Reservation[]) => {
+      ;
+
+        const merged = [...existingReservations, ...newReservations];
+      
+        const deduplicated = merged.reduce((acc, current) => {
+          
+            // Check if there's an existing item with the same bikeId, startDate, and endDate
+            if (!acc.some(item =>
+                item.bikeId === current.bikeId &&
+                item.startDate.seconds === current.startDate.seconds &&
+                item.endDate.seconds === current.endDate.seconds)) {
+               
+                acc.push(current);
+            } else {
+               
+            }
+            return acc;
+        }, [] as Reservation[]);
+
+        return deduplicated;
+    };
+
+
+    // Debounce function with TypeScript typings
+    function debounce<F extends (...args: any[]) => void>(func: F, waitFor: number): (...args: Parameters<F>) => ReturnType<F> {
+        let timeout: ReturnType<typeof setTimeout> | null = null;
+
+        return function (...args: Parameters<F>): ReturnType<F> {
+            if (timeout !== null) {
+                clearTimeout(timeout);
+                timeout = null;
+            }
+            timeout = setTimeout(() => func(...args), waitFor);
+            return undefined as unknown as ReturnType<F>;
+        };
+    }
+
+
+    const recalculateAvailability = useCallback(() => {
+        let newAvailabilityData: AvailabilityData = {};
+        const startDateRange = new Date();
+        startDateRange.setHours(0, 0, 0, 0);
+        const endDateRange = new Date(startDateRange);
+        endDateRange.setDate(endDateRange.getDate() + 30);
+
+        const allDatesInRange = generateDateRange(startDateRange, endDateRange);
+
+        // Initialize availability for each bike and each date
+        allDatesInRange.forEach(dateString => {
+            newAvailabilityData[dateString] = {};
+            availableBikes.forEach(bike => {
+                newAvailabilityData[dateString][bike.id] = bike.stock;
+            });
+        });
+
+        // Adjust availability based on Firestore reservations
+        allReservations.forEach(reservation => {
+            const reservationDates = generateDateRange(
+                new Date(reservation.startDate.toDate()),
+                new Date(reservation.endDate.toDate())
             );
 
-            return combinedReservations.map(doc => doc.data());
-        } catch (error) {
-            console.error("Error fetching reservations: ", error);
-            return [];
-        }
-    };
-
-
-
-    // useEffect to update availability
-    useEffect(() => {
-        const updateAvailabilityOnDateSelection = async () => {
-            if (!selectedBike || !startDate || !endDate) return;
-
-            const reservations = await fetchReservationsForBikeAndDateRange(selectedBike.id, startDate, endDate);
-            let availability = selectedBike.stock;
-            reservations.forEach(reservation => {
-
-                if (reservation.startDate <= endDate && reservation.endDate >= startDate) {
-                    availability = Math.min(availability, selectedBike.stock - reservation.quantity);
+            reservationDates.forEach(dateString => {
+                if (newAvailabilityData[dateString]?.[reservation.bikeId]) {
+                    newAvailabilityData[dateString][reservation.bikeId] = Math.max(0, newAvailabilityData[dateString][reservation.bikeId] - reservation.quantity);
                 }
             });
-
-            setSelectedBikeAvailableStock(availability);
-        };
-
-        updateAvailabilityOnDateSelection();
-    }, [selectedBike, startDate, endDate, db]);
+        });
 
 
-    const saveBasketToLocal = (basketItems: ReservationItem[]) => {
-        const basketWithTimestamp = {
-            items: basketItems,
-            timestamp: new Date().getTime() // Save the current time as a timestamp
-        };
-        if (user) {
-            localStorage.setItem(`basket_${user.uid}`, JSON.stringify(basketWithTimestamp));
+        setDateAvailability(newAvailabilityData);
+    }, [basket, allReservations, availableBikes]);
+
+
+
+
+
+
+    useEffect(() => {
+        if (!selectedBike || !startDate || !endDate) return;
+
+        // This now correctly receives an unsubscribe function
+        const unsubscribe = listenToReservationsForBikeAndDateRange(selectedBike.id, startDate, endDate);
+
+        return () => unsubscribe(); // Cleanup listener on unmount or dependency change
+    }, [selectedBike, startDate, endDate]);
+
+
+    // fetchReservations defined outside of useEffect
+    const fetchReservations = async () => {
+        setIsLoading(true);
+        try {
+            const querySnapshot = await getDocs(collection(db, "reservations"));
+            const reservations = querySnapshot.docs.map(doc => ({
+                ...doc.data() as Reservation,
+                id: doc.id
+            }));
+
+            setAllReservations(reservations);
+        } catch (error) {
+            console.error("Error fetching reservations: ", error);
         }
+        setIsLoading(false);
     };
 
+
+    // Create a debounced version of recalculateAvailability
+    const debouncedRecalculateAvailability = useCallback(
+        debounce(() => {
+            recalculateAvailability();
+        }, 500),
+        // Include all dependencies that trigger a recalculation
+        [recalculateAvailability, basket, allReservations, selectedBike, availableBikes]
+    );
+
+
+    // Use the debounced function in useEffect
+    useEffect(() => {
+        debouncedRecalculateAvailability();
+    }, [debouncedRecalculateAvailability]);
+
+
+    const handleFetchReservations = useCallback(async () => {
+        setIsLoading(true);
+        setIsLoading(false);
+    }, []); // Empty dependency array as fetchReservations should be defined outside
+
+
+    useEffect(() => {
+        handleFetchReservations();
+    }, [handleFetchReservations]);
+
+
+    // Call fetchReservations only once on component mount
+    useEffect(() => {
+        fetchReservations();
+    }, []);
 
 
     // This function adds the selected bike to the basket and updates Firestore.
@@ -215,7 +288,6 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
             return;
         }
 
-        // Check if there's enough stock available.
         if (selectedQuantity > selectedBikeAvailableStock) {
             console.error("Not enough stock available");
             return;
@@ -235,29 +307,22 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                 });
             });
 
-            // Update the local basket and available stock state
-            const newBasket = [...basket, {
+            const newBasketItem = {
                 bikeId: selectedBike.id,
                 name: selectedBike.name,
                 quantity: selectedQuantity,
                 startDate: startDate,
                 endDate: endDate || startDate,
                 reservationId: reservationRef.id
-            }];
+            };
 
-            setBasket(newBasket);
-            recalculateAvailability();
-            saveBasketToLocal(newBasket);
-            setSelectedBikeAvailableStock(prevStock => prevStock - selectedQuantity);
-
-            if (user) {
-                localStorage.setItem('basket', JSON.stringify(newBasket));
-            }
+            setBasket(prevBasket => [...prevBasket, newBasketItem]);
 
         } catch (e) {
             console.error("Transaction failed: ", e);
         }
     };
+
 
     // This function removes an item from the basket and updates Firestore.
     const removeFromBasket = async (index: number) => {
@@ -265,74 +330,53 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         if (itemToRemove.reservationId) {
             await deleteDoc(doc(db, "reservations", itemToRemove.reservationId));
         }
-        // Update the local basket and available stock state
+
         const newBasket = basket.filter((_, i) => i !== index);
         setBasket(newBasket);
-        recalculateAvailability();
-        saveBasketToLocal(newBasket);
-        setSelectedBikeAvailableStock(prevStock => prevStock + itemToRemove.quantity);
 
+        // Update local storage with the new basket
         if (user) {
-            localStorage.setItem('basket', JSON.stringify(newBasket));
+            const userBasketKey = `basket_${user.uid}`;
+            localStorage.setItem(userBasketKey, JSON.stringify(newBasket));
         }
     };
 
-    // Listen for changes in the basket and update the available stock
+
+
+
+    // Load basket from local storage on user change
     useEffect(() => {
-        if (selectedBike) {
-            let availableStock = selectedBike.stock;
-            basket.forEach(item => {
-                if (item.bikeId === selectedBike.id) {
-                    availableStock -= item.quantity;
+        if (user) {
+            const userBasketKey = `basket_${user.uid}`;
+            const savedBasketData = localStorage.getItem(userBasketKey);
+            if (savedBasketData) {
+                const { items, timestamp } = JSON.parse(savedBasketData);
+                const currentTime = new Date().getTime();
+                if (currentTime - timestamp < 15 * 60 * 1000) { // 15 minutes
+                    const rehydratedBasket = items.map((item: { startDate: string | number | Date; endDate: string | number | Date; }) => ({
+                        ...item,
+                        startDate: new Date(item.startDate),
+                        endDate: item.endDate ? new Date(item.endDate) : null
+                    }));
+                    setBasket(rehydratedBasket);
+                } else {
+                    localStorage.removeItem(userBasketKey); // Clear expired basket data
                 }
-            });
-            setSelectedBikeAvailableStock(availableStock);
-        }
-    }, [basket, selectedBike]);
-
-
-    useEffect(() => {
-        recalculateAvailability();
-    }, [selectedBike, basket]); // Add dependencies as needed
-
-
-    const recalculateAvailability = async () => {
-        if (!selectedBike) return;
-
-        // Initialize availability data with full stock for a range of dates (e.g., the current month)
-        let newAvailabilityData: AvailabilityData = {};
-        const startDateRange = new Date();
-        startDateRange.setHours(0, 0, 0, 0); // Set to the start of the day
-        const endDateRange = new Date(); // Ending, for example, 30 days from today
-        endDateRange.setDate(endDateRange.getDate() + 30);
-
-        let allDatesInRange = generateDateRange(startDateRange, endDateRange);
-        allDatesInRange.forEach(dateString => {
-            newAvailabilityData[dateString] = selectedBike.stock;
-        });
-
-        // Adjust availability based on reservations from Firestore
-        const reservations = await fetchReservationsForBikeAndDateRange(selectedBike.id, startDateRange, endDateRange);
-        reservations.forEach(reservation => {
-            const reservationDates = generateDateRange(reservation.startDate.toDate(), reservation.endDate.toDate());
-            reservationDates.forEach(dateString => {
-                newAvailabilityData[dateString] = Math.max(0, newAvailabilityData[dateString] - reservation.quantity);
-            });
-
-        });
-
-        // Adjust availability based on current basket items
-        basket.forEach(item => {
-            if (item.bikeId === selectedBike.id) {
-                const basketItemDates = generateDateRange(item.startDate, item.endDate || item.startDate);
-                basketItemDates.forEach(dateString => {
-                    newAvailabilityData[dateString] = Math.max(0, newAvailabilityData[dateString] - item.quantity);
-                });
             }
-        });
+        }
+    }, [user]);
 
-        setDateAvailability(newAvailabilityData);
-    };
+    // Save current basket to local storage when basket changes
+    useEffect(() => {
+        if (user && basket.length > 0) {
+            const userBasketKey = `basket_${user.uid}`;
+            const basketWithTimestamp = {
+                items: basket,
+                timestamp: new Date().getTime()
+            };
+            localStorage.setItem(userBasketKey, JSON.stringify(basketWithTimestamp));
+        }
+    }, [basket, user]);
 
 
     const renderQuantitySelector = () => {
@@ -340,60 +384,80 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
             return null;
         }
 
-        const options = [];
-        const dateString = startDate.toISOString().split('T')[0];
-        const availableStock = dateAvailability[dateString] ?? selectedBike.stock;
+        // Format date in local time
+        const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+        const availableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
 
+
+        // If no bikes are available, show a message instead of the selector
+        if (availableStock === 0) {
+            return <p className="text-red-500">Fully Booked</p>;
+        }
+
+        const options = [];
         for (let i = 1; i <= availableStock; i++) {
             options.push(<option key={i} value={i}>{i}</option>);
         }
 
         return (
-            <select className='rounded-lg p-1 text-xl dark text-foreground'
-                value={selectedQuantity}
-                onChange={e => setSelectedQuantity(Number(e.target.value))}>
-                {options}
-            </select>
+            <div className="flex flex-col">
+                <label htmlFor="quantity-selector" className="text-lg font-medium">Select Quantity:</label>
+                <select
+                    id="quantity-selector"
+                    className='rounded-lg p-1 text-xl dark text-foreground'
+                    value={selectedQuantity}
+                    onChange={e => setSelectedQuantity(Number(e.target.value))}
+                    aria-label="Select Quantity"
+                >
+                    {options}
+                </select>
+            </div>
         );
     };
-
 
     // Instead of returning null when there's no bike selected,
     // render a message prompting the user to select a bike.
     const renderBookingOrPrompt = () => {
+
+        if (isLoading) {
+            return <div>Loading...</div>; // Render a loading indicator
+        }
+
         if (selectedBike) {
             return (
                 <motion.div className="booking-flow p-6 border border-gray-200 rounded-lg" initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.5 }}>
-                    <motion.div className='header flex justify-between items-center-'>
+                    <motion.div className='header flex justify-between items-center'>
                         <h1 className='text-lg'>Make a booking</h1>
                         <Button className="bg-gray-800 p-2 mb-5 rounded-full hover:bg-danger-100 border text-white font-bold transition-colors duration-200" onClick={onLogout}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                         </svg></Button>
                     </motion.div>
                     {selectedBike && (
-                        <motion.div className="bookingForm flex flex-col space-y-4 p-6 border border-gray-300 rounded "
+                        <motion.div className="bookingForm flex flex-col space-y-4 p-6 border border-gray-300 rounded"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             transition={{ duration: 0.5 }}>
-                            <div className="date"><label className='rounded-lg'>Select Date: </label>
-                                {selectedBike && (
-                                    <DatePicker
-                                        startDate={startDate}
-                                        endDate={endDate}
-                                        setStartDate={setStartDate}
-                                        setEndDate={setEndDate}
-                                        availabilityData={dateAvailability}
-                                        selectedBike={selectedBike} // Pass the selected bike
-                                    />
-                                )}
+                       
+                                <div className="date"><label className='rounded-lg'>Select Date: </label>
+                                    {selectedBike && (
+                                        <DatePicker
+                                            startDate={startDate}
+                                            endDate={endDate}
+                                            setStartDate={setStartDate}
+                                            setEndDate={setEndDate}
+                                            availabilityData={dateAvailability}
+                                            selectedBike={selectedBike} // Pass the selected bike
+                                        />
+                                    )}
 
-                            </div>
-                            <label className="label">Quantity:</label><span>{renderQuantitySelector()}</span>
+                                </div>
+                            
 
+                            {renderQuantitySelector()}
                             <Button color="primary" disabled={isAddToBasketDisabled}
                                 className={`mt-5 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5 ${isAddToBasketDisabled ? 'bg-gray-500 hover:bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-green-700'
                                     }`} onClick={addToBasket}>Add to Basket</Button>
