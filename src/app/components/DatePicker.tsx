@@ -4,6 +4,7 @@ import 'react-datepicker/dist/react-datepicker.css';
 import { AvailabilityData } from './Types/types';
 import { Bike } from './Types/types';
 
+
 interface BookingDatePickerProps {
     startDate: Date | null;
     endDate: Date | null;
@@ -32,29 +33,41 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
         }
     
         // Compare dates in local time
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        const currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
-        // Determine the style based on availability
-        let styles;
-        if (currentDate < today) {
-            styles = 'bg-gray-200'; // Past dates
-        } else if (availableStock === 0) {
-            styles = 'bg-red-400'; // Fully booked
-        } else if (availableStock < (selectedBike?.stock ?? 0)) {
-            styles = 'bg-yellow-500'; // Partially available
-        } else {
-            styles = 'bg-green-500'; // Available
-        }
-    
-        return <div className={`${styles} p-1`}>{day}</div>;
-    };
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const currentDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+    // Styles for selected and in-range days
+    const selectedDayStyle = 'bg-blue-500 text-white';
+    const inRangeDayStyle = 'bg-blue-400';
+
+    // Check if the date is selected or in range
+    const isSelectedDate = startDate && currentDate.getTime() === startDate.getTime();
+    const isInDateRange = startDate && endDate && currentDate >= startDate && currentDate <= endDate;
+
+    // Determine the style based on availability and date selection
+    let styles = '';
+    if (isSelectedDate) {
+        styles = selectedDayStyle;
+    } else if (isInDateRange) {
+        styles = inRangeDayStyle;
+    } else if (currentDate < today) {
+        styles = 'bg-gray-200'; // Past dates
+    } else if (availableStock === 0) {
+        styles = 'bg-red-400'; // Fully booked
+    } else if (availableStock < (selectedBike?.stock ?? 0)) {
+        styles = 'bg-yellow-500'; // Partially available
+    } else {
+        styles = 'bg-green-500'; // Available
+    }
+
+    return <div className={`${styles} p-1`}>{day}</div>;
+};
     
 
     return (
-        <DatePicker
-            className='rounded mt-4 p-2 w-full'
+        <DatePicker 
+            
             selectsRange={true}
             minDate={new Date}// Disable dates before today
             startDate={startDate}
@@ -67,6 +80,8 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
             dateFormat="dd/MM/yyyy"
             isClearable={true}
             renderDayContents={renderDayContents}
+            monthsShown={1}
+            inline
         />
     );
 };

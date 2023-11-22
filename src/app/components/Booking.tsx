@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import DatePicker from './DatePicker';
 import { Bike } from './Types/types';
 import { runTransaction, doc, onSnapshot, collection, where, query, serverTimestamp, deleteDoc, getDocs, Timestamp, DocumentData, QuerySnapshot } from "firebase/firestore"
@@ -47,35 +47,13 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     const [basket, setBasket] = useState<ReservationItem[]>([]);
     const [selectedBikeAvailableStock, setSelectedBikeAvailableStock] = useState<number>(0);
     const [dateAvailability, setDateAvailability] = useState<AvailabilityData>({});
-    const [isLoading, setIsLoading] = useState(true);
+
     const [allReservations, setAllReservations] = useState<Reservation[]>([]);
-    const isAddToBasketDisabled = !startDate || selectedQuantity <= 0 || selectedBikeAvailableStock <= 0;
+    const [isAdding, setIsAdding] = useState(false);
+    const isAddToBasketDisabled = !startDate || selectedQuantity <= 0 || selectedBikeAvailableStock <= 0 || isAdding;
 
     const [debouncedStartDate, setDebouncedStartDate] = useState(startDate);
     const [debouncedEndDate, setDebouncedEndDate] = useState(endDate)
-    const [startQueryUpdated, setStartQueryUpdated] = useState(false);
-    const [endQueryUpdated, setEndQueryUpdated] = useState(false);
-    const [latestSnapshot, setLatestSnapshot] = useState<QuerySnapshot | null>(null);
-    const [currentBikeId, setCurrentBikeId] = useState<string | null>(null);
-
-
-    useEffect(() => {
-        // Fetch all the bikes only once on component mount
-        const fetchBikes = async () => {
-            const bikesSnapshot = await getDocs(collection(db, "bikes"));
-            const bikesData = bikesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Bike));
-            setAvailableBikes(bikesData);
-        };
-
-        fetchBikes();
-    }, []);
-
-
-    useEffect(() => {
-        if (selectedBike) {
-            setSelectedBikeAvailableStock(selectedBike.stock);
-        }
-    }, [selectedBike]);
 
 
     useEffect(() => {
@@ -92,12 +70,45 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         return () => unsubscribe(); // Cleanup function to unsubscribe on unmount
     }, []);
 
+    useEffect(() => {
+        // Fetch all the bikes only once on component mount
+        const fetchBikes = async () => {
+            const bikesSnapshot = await getDocs(collection(db, "bikes"));
+            const bikesData = bikesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Bike));
+            setAvailableBikes(bikesData);
+        };
+        fetchBikes();
+    }, []);
+
+
+    useEffect(() => {
+        if (selectedBike) {
+            setSelectedBikeAvailableStock(selectedBike.stock);
+        } else {
+            // Handle the case when no bike is selected
+            setSelectedBikeAvailableStock(0); // or another appropriate default value
+        }
+    }, [selectedBike]);
+
+    // Update selectedQuantity when available stock changes and it's higher than the current selectedQuantity
+    useEffect(() => {
+        if (startDate && selectedBike) {
+            const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+            const currentAvailableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
+    
+            if (selectedQuantity > currentAvailableStock) {
+                setSelectedQuantity(currentAvailableStock); // Update to the max available stock
+            }
+        }
+    }, [dateAvailability, selectedBike, startDate, selectedQuantity]);
+
     //DateRange for recalculating the availability for datepicker
     function generateDateRange(start: Date, end: Date) {
         let dates = [];
         let currentDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+        let adjustedEndDate = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
-        while (currentDate <= end) {
+        while (currentDate <= adjustedEndDate) {
             let formattedDate = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
             dates.push(formattedDate);
             currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
@@ -105,6 +116,56 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
 
         return dates;
     }
+
+    const recalculateAvailability = useCallback(() => {
+        let newAvailabilityData: AvailabilityData = {};
+        let processedDates: Record<string, boolean> = {};
+        const startDateRange = new Date();
+        startDateRange.setHours(0, 0, 0, 0); // Set to start of today
+        const endDateRange = new Date(startDateRange);
+        endDateRange.setDate(endDateRange.getDate() + 30); // Next 30 days
+
+        const allDatesInRange = generateDateRange(startDateRange, endDateRange);
+
+        // Initialize availability for each bike and each date
+        allDatesInRange.forEach(dateString => {
+            newAvailabilityData[dateString] = {};
+            availableBikes.forEach(bike => {
+                newAvailabilityData[dateString][bike.id] = bike.stock;
+            });
+        });
+
+        // Adjust availability based on filtered Firestore reservations
+        // Handle reservations from Firestore
+        allReservations.forEach(reservation => {
+            const reservationDates = generateDateRange(
+                new Date(reservation.startDate.toDate()),
+                new Date(reservation.endDate.toDate())
+            );
+
+            reservationDates.forEach(dateString => {
+                // Process reservation dates
+                if (newAvailabilityData[dateString]?.[reservation.bikeId]) {
+                    newAvailabilityData[dateString][reservation.bikeId] -= reservation.quantity;
+                }
+                processedDates[dateString] = true; // Mark date as processed
+            });
+        });
+
+        // Handle basket items separately
+        basket.forEach(item => {
+            const basketItemDates = generateDateRange(item.startDate, item.endDate || item.startDate);
+
+            basketItemDates.forEach(dateString => {
+                // Only process if the date hasn't been processed yet
+                if (!processedDates[dateString] && newAvailabilityData[dateString]?.[item.bikeId]) {
+                    newAvailabilityData[dateString][item.bikeId] = Math.max(0, newAvailabilityData[dateString][item.bikeId] - item.quantity);
+                }
+            });
+        });
+
+        setDateAvailability(newAvailabilityData);
+    }, [allReservations, availableBikes, basket]);
 
     // Debounce function
     function debounce<F extends (...args: any[]) => void>(func: F, waitFor: number): (...args: Parameters<F>) => ReturnType<F> {
@@ -120,66 +181,15 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         };
     }
 
-    const recalculateAvailability = useCallback(() => {
-        let newAvailabilityData: AvailabilityData = {};
-        const startDateRange = new Date();
-        startDateRange.setHours(0, 0, 0, 0);
-        const endDateRange = new Date(startDateRange);
-        endDateRange.setDate(endDateRange.getDate() + 30);
-
-        const allDatesInRange = generateDateRange(startDateRange, endDateRange);
-
-        // Initialize availability for each bike and each date
-        allDatesInRange.forEach(dateString => {
-            newAvailabilityData[dateString] = {};
-            availableBikes.forEach(bike => {
-                newAvailabilityData[dateString][bike.id] = bike.stock;
-            });
-        });
-
-        // Adjust availability based on Firestore reservations
-        allReservations.forEach(reservation => {
-            const reservationDates = generateDateRange(
-                new Date(reservation.startDate.toDate()),
-                new Date(reservation.endDate.toDate())
-            );
-
-            reservationDates.forEach(dateString => {
-                if (newAvailabilityData[dateString]?.[reservation.bikeId]) {
-                    newAvailabilityData[dateString][reservation.bikeId] = Math.max(0, newAvailabilityData[dateString][reservation.bikeId] - reservation.quantity);
-                }
-            });
-        });
-
-
-        setDateAvailability(newAvailabilityData);
-    }, [allReservations, availableBikes]);
-
-
     // a debounced version of recalculateAvailability outside of useCallback
     const debouncedRecalculateAvailability = debounce(() => {
         recalculateAvailability();
     }, 500);
 
-
-    const processReservationSnapshot = useCallback(() => {
-        if (latestSnapshot && currentBikeId) {
-            let newReservations = latestSnapshot.docs.map(doc => ({ ...doc.data() as Reservation, id: doc.id }));
-
-
-            const deduplicatedReservations = mergeAndDeduplicateReservations(newReservations, allReservations);
-            setAllReservations(deduplicatedReservations);
-            debouncedRecalculateAvailability();
-        }
-    }, [latestSnapshot, currentBikeId, allReservations, debouncedRecalculateAvailability]);
-
-
-
-    // Use the debounced function in useEffect
+    // Recalculate availability when basket or allReservations change
     useEffect(() => {
         debouncedRecalculateAvailability();
-    }, [debouncedRecalculateAvailability]);
-
+    }, [debouncedRecalculateAvailability, basket, allReservations]);
 
     // Update debounced start and end dates after a delay
     useEffect(() => {
@@ -193,111 +203,11 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     }, [startDate, endDate]);
 
 
-    useEffect(() => {
-        if (!selectedBike || !debouncedStartDate || !debouncedEndDate) return;
-
-        const startTimestamp = Timestamp.fromDate(debouncedStartDate);
-        const endTimestamp = Timestamp.fromDate(debouncedEndDate);
-
-        const startQuery = query(
-            collection(db, 'reservations'),
-            where('bikeId', '==', selectedBike.id),
-            where('startDate', '<=', endTimestamp)
-        );
-
-        const endQuery = query(
-            collection(db, 'reservations'),
-            where('bikeId', '==', selectedBike.id),
-            where('endDate', '>=', startTimestamp)
-        );
-
-        // Listeners setting the state
-        const startListener = onSnapshot(startQuery, (snapshot) => {
-            setLatestSnapshot(snapshot);
-            setCurrentBikeId(selectedBike.id);
-            setStartQueryUpdated(true);
-        });
-
-        const endListener = onSnapshot(endQuery, (snapshot) => {
-            setLatestSnapshot(snapshot);
-            setCurrentBikeId(selectedBike.id);
-            setEndQueryUpdated(true);
-        });
-
-        return () => {
-            startListener();
-            endListener();
-        };
-    }, [selectedBike, debouncedStartDate, debouncedEndDate]);
-
-    useEffect(() => {
-        if (startQueryUpdated || endQueryUpdated) {
-            processReservationSnapshot();
-            setStartQueryUpdated(false);
-            setEndQueryUpdated(false);
-        }
-    }, [startQueryUpdated, endQueryUpdated, processReservationSnapshot]);
-
-
-    const mergeAndDeduplicateReservations = (newReservations: Reservation[], existingReservations: Reservation[]) => {
-        ;
-
-        const merged = [...existingReservations, ...newReservations];
-
-        const deduplicated = merged.reduce((acc, current) => {
-
-            // Check if there's an existing item with the same bikeId, startDate, and endDate
-            if (!acc.some(item =>
-                item.bikeId === current.bikeId &&
-                item.startDate.seconds === current.startDate.seconds &&
-                item.endDate.seconds === current.endDate.seconds)) {
-
-                acc.push(current);
-            } else {
-
-            }
-            return acc;
-        }, [] as Reservation[]);
-
-        return deduplicated;
-    };
-
-    // fetchReservations defined outside of useEffect
-    const fetchReservations = async () => {
-        setIsLoading(true);
-        try {
-            const querySnapshot = await getDocs(collection(db, "reservations"));
-            const reservations = querySnapshot.docs.map(doc => ({
-                ...doc.data() as Reservation,
-                id: doc.id
-            }));
-
-            setAllReservations(reservations);
-        } catch (error) {
-            console.error("Error fetching reservations: ", error);
-        }
-        setIsLoading(false);
-    };
-
-    const handleFetchReservations = useCallback(async () => {
-        setIsLoading(true);
-        setIsLoading(false);
-    }, []); // Empty dependency array as fetchReservations should be defined outside
-
-
-    useEffect(() => {
-        handleFetchReservations();
-    }, [handleFetchReservations]);
-
-
-    // Call fetchReservations only once on component mount
-    useEffect(() => {
-        fetchReservations();
-    }, []);
-
-
     // This function adds the selected bike to the basket and updates Firestore.
     const addToBasket = async () => {
+        if (isAddToBasketDisabled) return; // Check if button should be disabled
+        setIsAdding(true); // Disable further actions
+
         if (!selectedBike || !startDate || selectedQuantity <= 0) {
             console.error("No bike selected, date not chosen, or invalid quantity.");
             return;
@@ -336,8 +246,10 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         } catch (e) {
             console.error("Transaction failed: ", e);
         }
+        setTimeout(() => {
+            setIsAdding(false);
+        }, 1000); // Delay of 1 second
     };
-
 
     // This function removes an item from the basket and updates Firestore.
     const removeFromBasket = async (index: number) => {
@@ -354,9 +266,8 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
             const userBasketKey = `basket_${user.uid}`;
             localStorage.setItem(userBasketKey, JSON.stringify(newBasket));
         }
+
     };
-
-
 
 
     // Load basket from local storage on user change
@@ -374,6 +285,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                         endDate: item.endDate ? new Date(item.endDate) : null
                     }));
                     setBasket(rehydratedBasket);
+
                 } else {
                     localStorage.removeItem(userBasketKey); // Clear expired basket data
                 }
@@ -398,22 +310,21 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         if (!selectedBike || !startDate) {
             return null;
         }
-
-        // Format date in local time
+    
+        // Calculate available stock here
         const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
         const availableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
-
-
+    
         // If no bikes are available, show a message instead of the selector
         if (availableStock === 0) {
             return <p className="text-red-500">Fully Booked</p>;
         }
-
+    
         const options = [];
         for (let i = 1; i <= availableStock; i++) {
             options.push(<option key={i} value={i}>{i}</option>);
         }
-
+    
         return (
             <div className="flex flex-col">
                 <label htmlFor="quantity-selector" className="text-lg font-medium">Select Quantity:</label>
@@ -430,14 +341,10 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         );
     };
 
+
     // Instead of returning null when there's no bike selected,
     // render a message prompting the user to select a bike.
     const renderBookingOrPrompt = () => {
-
-        if (isLoading) {
-            return <div>Loading...</div>; // Render a loading indicator
-        }
-
         if (selectedBike) {
             return (
                 <motion.div className="booking-flow p-6 border border-gray-200 rounded-lg" initial={{ opacity: 0 }}
@@ -451,7 +358,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                         </svg></Button>
                     </motion.div>
                     {selectedBike && (
-                        <motion.div className="bookingForm flex flex-col space-y-4 p-6 border border-gray-300 rounded"
+                        <motion.div className="bookingForm flex flex-col justify-between items-center space-y-4 p-6 border border-gray-300 rounded"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
@@ -471,10 +378,9 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
 
                             </div>
 
-
                             {renderQuantitySelector()}
                             <Button color="primary" disabled={isAddToBasketDisabled}
-                                className={`mt-5 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5 ${isAddToBasketDisabled ? 'bg-gray-500 hover:bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-green-700'
+                                className={`mt-5 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5 w-full ${isAddToBasketDisabled ? 'bg-gray-500 hover:bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-green-700'
                                     }`} onClick={addToBasket}>Add to Basket</Button>
                         </motion.div>
                     )}
