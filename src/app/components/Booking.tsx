@@ -4,10 +4,8 @@ import { Bike } from './Types/types';
 import { runTransaction, doc, onSnapshot, collection, where, query, serverTimestamp, deleteDoc, getDocs, Timestamp, DocumentData, QuerySnapshot } from "firebase/firestore"
 import db from "./FirestoreInit"
 import { motion } from 'framer-motion';
-import { Button } from '@nextui-org/react';
 import { AvailabilityData } from './Types/types';
 import { User } from "firebase/auth";
-
 
 
 // Define the props expected by BookingFlow
@@ -353,9 +351,9 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                     transition={{ duration: 0.5 }}>
                     <motion.div className='header flex justify-between items-center'>
                         <h1 className='text-lg'>Make a booking</h1>
-                        <Button className="bg-gray-800 p-2 mb-5 rounded-full hover:bg-danger-100 border text-white font-bold transition-colors duration-200" onClick={onLogout}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                        <button className="bg-gray-800 p-2 mb-5 rounded-full hover:bg-danger-100 border text-white font-bold transition-colors duration-200" onClick={onLogout}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                        </svg></Button>
+                        </svg></button>
                     </motion.div>
                     {selectedBike && (
                         <motion.div className="bookingForm flex flex-col justify-between items-center space-y-4 p-6 border border-gray-300 rounded"
@@ -379,9 +377,9 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                             </div>
 
                             {renderQuantitySelector()}
-                            <Button color="primary" disabled={isAddToBasketDisabled}
-                                className={`mt-5 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5 w-full ${isAddToBasketDisabled ? 'bg-gray-500 hover:bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-green-700'
-                                    }`} onClick={addToBasket}>Add to Basket</Button>
+                            <button color="primary" disabled={isAddToBasketDisabled}
+                                className={`text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5 w-full ${isAddToBasketDisabled ? 'bg-gray-500 hover:bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-green-700'
+                                    }`} onClick={addToBasket}>Add to Basket</button>
                         </motion.div>
                     )}
                     <motion.div className="basket p-5 border border-gray-200 rounded-lg mt-5 bg-white"
@@ -398,9 +396,9 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                                 {item.name}, <br /> Quantity: {item.quantity}, <br />Date:<br />
                                 {item.startDate.toLocaleDateString('en-GB')}
                                 {item.endDate ? ` - ${item.endDate.toLocaleDateString('en-GB')}` : ''}
-                                <Button color="primary" className='p-2 hover:bg-danger-200 text-white font-bold rounded-full transition-colors duration-200 mx-5' onClick={() => removeFromBasket(index)}><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24" height="24" viewBox="0 0 16 16">
+                                <button color="primary" className='p-2 hover:bg-danger-200 text-white font-bold rounded-full transition-colors duration-200 mx-5' onClick={() => removeFromBasket(index)}><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24" height="24" viewBox="0 0 16 16">
                                     <circle cx="8" cy="8" r="8" fill="#fe3155"></circle><polygon fill="#fff" points="11.536,10.121 9.414,8 11.536,5.879 10.121,4.464 8,6.586 5.879,4.464 4.464,5.879 6.586,8 4.464,10.121 5.879,11.536 8,9.414 10.121,11.536"></polygon>
-                                </svg></Button></motion.div>
+                                </svg></button></motion.div>
 
                         ))}
                     </motion.div>
