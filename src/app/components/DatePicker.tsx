@@ -68,7 +68,7 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
     return (
         <DatePicker 
             
-            calendarClassName='mt-3'
+            calendarClassName='mt-3 p-2'
             selectsRange={true}
             minDate={new Date}// Disable dates before today
             startDate={startDate}

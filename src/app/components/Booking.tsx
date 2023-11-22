@@ -328,7 +328,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                 <label htmlFor="quantity-selector" className="text-lg font-medium">Select Quantity:</label>
                 <select
                     id="quantity-selector"
-                    className='rounded-lg p-1 text-xl dark text-foreground'
+                    className='rounded-lg p-1 mt-2 mb-2 text-xl dark text-foreground border-1 border-white-500/50'
                     value={selectedQuantity}
                     onChange={e => setSelectedQuantity(Number(e.target.value))}
                     aria-label="Select Quantity"
@@ -350,8 +350,8 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.5 }}>
                     <motion.div className='header flex justify-between items-center'>
-                        <h1 className='text-lg'>Make a booking</h1>
-                        <button className="bg-gray-800 p-2 mb-5 rounded-full hover:bg-danger-100 border text-white font-bold transition-colors duration-200" onClick={onLogout}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                        <h1 className='text-lg'>Make a booking:</h1>
+                        <button className="border-2 border-rose-500/50 p-2 mb-5 rounded-full hover:bg-danger-100 border-gray-300 text-white font-bold transition-colors duration-200" onClick={onLogout}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                         </svg></button>
                     </motion.div>
@@ -378,17 +378,17 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
 
                             {renderQuantitySelector()}
                             <button color="primary" disabled={isAddToBasketDisabled}
-                                className={`text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5 w-full ${isAddToBasketDisabled ? 'bg-gray-500 hover:bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-green-700'
+                                className={`text-white font-bold border-2 bg-teal-500/50 border-2 border-white-700/50 hover:bg-blue-700/50 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5 w-full ${isAddToBasketDisabled ? 'bg-gray-500 hover:bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-green-700'
                                     }`} onClick={addToBasket}>Add to Basket</button>
                         </motion.div>
                     )}
-                    <motion.div className="basket p-5 border border-gray-200 rounded-lg mt-5 bg-white"
+                    <motion.div className="basket p-5 border-4 border-green-500/50 rounded-lg mt-5 bg-white"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.5 }}>
                         {basket.map((item, index) => (
-                            <motion.div className='flex justify-between items-center p-4 border border-gray-200 rounded-lg bg-black' key={index}
+                            <motion.div className='flex justify-between items-center p-4 border-2 border-green-500/50 rounded-lg bg-black' key={index}
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -406,7 +406,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
             );
         } else {
             return (
-                <motion.div className='mt-2 text-xl p-6 border border-gray-200 rounded-lg mt-5' initial={{ opacity: 0 }}
+                <motion.div className='mt-2 text-xl p-6 border-2 border-green-500/50 rounded-lg mt-5' initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.5 }}>Please select a bike to continue</motion.div>

@@ -1,7 +1,7 @@
 // components/BookingForm.tsx
 import React, { useState } from 'react';
 import { User, signInWithEmailAndPassword, getAuth } from "firebase/auth";
-import { Button } from '@nextui-org/react';
+
 import { motion } from 'framer-motion';
 
 const BookingForm = () => {
@@ -27,13 +27,14 @@ const BookingForm = () => {
 
     return (
         <form onSubmit={handleEmailSignIn} className='flex flex-col space-y-4 p-6 border border-gray-300 rounded-lg'>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className='rounded p-1' />
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className='rounded p-1' />
+            <label>Existing User Login:</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className='rounded p-1 border-2 border-teal-500/50 hover:border-teal-700/50 focus:outline-none focus:bg-slate-700/50' />
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className='rounded p-1 border-2 border-teal-500/50 hover:border-teal-700/50  focus:outline-none focus:bg-slate-700/50' />
             {error && <motion.div className="text-red-500" initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 transition={{ duration: 0.5 }}>{error}</motion.div>} {/* Display error message */}
-            <Button className="bg-blue-500 hover:bg-green-700 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5" type="submit">Login</Button>
+            <button className="bg-teal-500/50 border-2 border-white-700/50 hover:bg-blue-700/50 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5" type="submit">Login</button>
         </form>
     );
 };

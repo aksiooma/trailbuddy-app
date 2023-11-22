@@ -24,7 +24,7 @@ const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike 
                 {bikes.map(bike => (
                     <li
                         key={bike.id}
-                        className={`cursor-pointer ${bike.stock === 0 ? 'text-gray-500' : ''} ${selectedBike?.id === bike.id ? 'text-[#FFD700]' : ''} py-2 focus:outline-none focus:ring-0 hover:text-slate-500`}
+                        className={`cursor-pointer ${bike.stock === 0 ? 'text-gray-500' : ''} ${selectedBike?.id === bike.id ? 'text-[#FFD700]' : ''} py-2 focus:outline-none hover:text-slate-500`}
                         onClick={() => onSelectBike(bike)}
                     >
                         {bike.name}

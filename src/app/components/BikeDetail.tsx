@@ -19,7 +19,7 @@ const BikeDetail: React.FC<BikeDetailProps & { onClose: () => void }> = ({ bike,
                 transition={{ duration: 0.5 }}>
 
                 <h3 className="text-2xl font-semibold mb-3">{bike.name}</h3>
-                <button onClick={onClose} className="close-btn"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                <button onClick={onClose} className="close-btn focus:outline-none hover:text-slate-500"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-6 h-6">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
                 </button>
