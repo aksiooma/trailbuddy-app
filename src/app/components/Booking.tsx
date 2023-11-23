@@ -121,7 +121,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         const startDateRange = new Date();
         startDateRange.setHours(0, 0, 0, 0); // Set to start of today
         const endDateRange = new Date(startDateRange);
-        endDateRange.setDate(endDateRange.getDate() + 30); // Next 30 days
+        endDateRange.setDate(endDateRange.getDate() + 120); // Next 30 days
 
         const allDatesInRange = generateDateRange(startDateRange, endDateRange);
 

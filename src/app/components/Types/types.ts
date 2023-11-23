@@ -6,6 +6,7 @@ export interface Bike {
   stock: number;
   desc?: string;
   image?: string;
+  price: number;
 
 }
 

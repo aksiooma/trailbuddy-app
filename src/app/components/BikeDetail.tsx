@@ -4,6 +4,7 @@ import { BikeDetailProps } from './Types/types'
 import { motion } from 'framer-motion';
 import Image from 'next/image';
 import {commonImageProps} from './Types/types'
+import BikeDetailAccordion from './BikeDetailAccordion';
 
 
 const BikeDetail: React.FC<BikeDetailProps & { onClose: () => void }> = ({ bike, onClose }) => {
@@ -24,8 +25,11 @@ const BikeDetail: React.FC<BikeDetailProps & { onClose: () => void }> = ({ bike,
                 </svg>
                 </button>
             </motion.div>
+            
             {bike.image && <Image className='img rounded'  {...commonImageProps} src={bike.image} alt={bike.name}/>}
-            <p className="mt-1 text-base text-white-800 mt-3">{bike.desc}</p>
+            <div className='p-2 mt-2 mb-2 border-1 border-teal-100/50 rounded'>{bike.price} € / day</div>
+           <BikeDetailAccordion bike={bike} />
+          
 
         </motion.div>
     );
