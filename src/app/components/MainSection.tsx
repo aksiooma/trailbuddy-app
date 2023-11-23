@@ -52,9 +52,9 @@ const MainSection: React.FC<MainSectionProps> = ({ onBookNowClick }) => {
           <p className="text-1xl sm:text-2xl md:text-2xl lg:text-4xl xl:text-4xl mb-4 text-white">Your trail adventure starts here</p>
           <button
             onClick={onBookNowClick}
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full transition-colors duration-200"
+            className="bg-teal-500/50 border-2 border-white-500/50 hover:bg-blue-900/50 text-white font-bold rounded-full transition-colors duration-200 py-2 px-4"
           >
-            Book Now
+            Book Now 
           </button>
         </div>
 

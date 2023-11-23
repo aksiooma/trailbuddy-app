@@ -50,10 +50,6 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     const [isAdding, setIsAdding] = useState(false);
     const isAddToBasketDisabled = !startDate || selectedQuantity <= 0 || selectedBikeAvailableStock <= 0 || isAdding;
 
-    const [debouncedStartDate, setDebouncedStartDate] = useState(startDate);
-    const [debouncedEndDate, setDebouncedEndDate] = useState(endDate)
-
-
     useEffect(() => {
         // Real-time listener for reservations
         const unsubscribe = onSnapshot(collection(db, "reservations"), (snapshot) => {
@@ -121,7 +117,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         const startDateRange = new Date();
         startDateRange.setHours(0, 0, 0, 0); // Set to start of today
         const endDateRange = new Date(startDateRange);
-        endDateRange.setDate(endDateRange.getDate() + 120); // Next 30 days
+        endDateRange.setDate(endDateRange.getDate() + 120); // Next 120 days
 
         const allDatesInRange = generateDateRange(startDateRange, endDateRange);
 
@@ -188,18 +184,6 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
     useEffect(() => {
         debouncedRecalculateAvailability();
     }, [debouncedRecalculateAvailability, basket, allReservations]);
-
-    // Update debounced start and end dates after a delay
-    useEffect(() => {
-        const startTimer = setTimeout(() => setDebouncedStartDate(startDate), 500);
-        const endTimer = setTimeout(() => setDebouncedEndDate(endDate), 500);
-
-        return () => {
-            clearTimeout(startTimer);
-            clearTimeout(endTimer);
-        };
-    }, [startDate, endDate]);
-
 
     // This function adds the selected bike to the basket and updates Firestore.
     const addToBasket = async () => {
@@ -378,7 +362,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
 
                             {renderQuantitySelector()}
                             <button color="primary" disabled={isAddToBasketDisabled}
-                                className={`text-white font-bold border-2 bg-teal-500/50 border-2 border-white-700/50 hover:bg-blue-700/50 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5 w-full ${isAddToBasketDisabled ? 'bg-gray-500 hover:bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-green-700'
+                                className={`bg-teal-500/50 border-2 border-white-500/50 hover:bg-blue-900/50 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5 w-full ${isAddToBasketDisabled ? 'bg-gray-500 hover:bg-gray-500 cursor-not-allowed' : 'bg-blue-500 hover:bg-green-700'
                                     }`} onClick={addToBasket}>Add to Basket</button>
                         </motion.div>
                     )}
@@ -421,7 +405,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}>
             {renderBookingOrPrompt()}
-            {/* Render the basket regardless of whether a bike is selected */}
+            {/* Render the blank basket regardless of whether a bike is selected */}
             <motion.div className="basket" initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}

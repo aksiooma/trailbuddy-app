@@ -75,7 +75,7 @@ const Login: React.FC<BookingProps> = ({ selectedBike }) => {
             transition={{ duration: 0.5 }}>
             <BookingForm />
             <div className="text-base text-gray-600 flex flex-col space-y-4 p-6 border border-gray-300 rounded-lg">
-                <button className="bg-teal-500/50 border-2 border-white-500/50 hover:bg-blue-700/50 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5 " onClick={handleAnonymousSignIn}>Login as Visitor</button>
+                <button className="bg-teal-500/50 border-2 border-white-500/50 hover:bg-blue-700/50 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5" onClick={handleAnonymousSignIn}>Login as Visitor</button>
                 <button className="bg-teal-500/50 border-2 border-white-500/50 hover:bg-blue-700/50 text-white font-bold rounded-full transition-colors duration-200 p-1 mx-5" onClick={handleGoogleSignIn}>Login with Google</button>
             </div>
         </motion.div>

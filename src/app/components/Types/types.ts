@@ -7,6 +7,7 @@ export interface Bike {
   desc?: string;
   image?: string;
   price: number;
+  specs: string
 
 }
 

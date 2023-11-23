@@ -8,6 +8,7 @@ import BikeDetailAccordion from './BikeDetailAccordion';
 
 
 const BikeDetail: React.FC<BikeDetailProps & { onClose: () => void }> = ({ bike, onClose }) => {
+    
     return (
         <motion.div className="p-6 border border-gray-300 rounded-lg"
             initial={{ opacity: 0 }}
