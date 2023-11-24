@@ -283,7 +283,23 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         const diffInMs = endDate.getTime() - startDate.getTime();
         return Math.round(diffInMs / msPerDay);
     }
+    
 
+    const getMinAvailableQuantityForRange = (startDate: Date, endDate: Date, selectedBike: { id: string; stock: number; }) => {
+        let minAvailableQuantity = Infinity;
+    
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+            const dateString = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+            const availableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
+            minAvailableQuantity = Math.min(minAvailableQuantity, availableStock);
+    
+            currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
+        }
+    
+        return minAvailableQuantity;
+    };
+    
 
 
     // Update selectedQuantity when available stock changes
@@ -292,21 +308,36 @@ useEffect(() => {
         return;
     }
 
-    const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-    const currentAvailableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
+    let currentAvailableStock;
+    if (endDate && startDate < endDate) {
+        // User has selected a date range
+        currentAvailableStock = getMinAvailableQuantityForRange(startDate, endDate, selectedBike);
+    } else {
+        // Single day selected or start date is same as end date
+        const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+        currentAvailableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
+    }
 
     if (selectedQuantity > currentAvailableStock || selectedQuantity === 0) {
-        setSelectedQuantity(currentAvailableStock > 0 ? 1 : 0); // Set to 1 if stock is available, otherwise 0
+        setSelectedQuantity(currentAvailableStock > 0 ? 1 : 0);
     }
-}, [dateAvailability, selectedBike, startDate, selectedQuantity]);
+}, [dateAvailability, selectedBike, startDate, endDate, selectedQuantity]);
+
 
 const renderQuantitySelector = () => {
     if (!selectedBike || !startDate) {
         return null;
     }
 
-    const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-    const availableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
+    let availableStock;
+    if (endDate && startDate < endDate) {
+        // If a range is selected, find the minimum stock across the range
+        availableStock = getMinAvailableQuantityForRange(startDate, endDate, selectedBike);
+    } else {
+        // For single day, access the stock directly
+        const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+        availableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
+    }
 
     if (availableStock === 0) {
         return <p className="text-red-500">Fully Booked</p>;
@@ -332,6 +363,7 @@ const renderQuantitySelector = () => {
         </div>
     );
 };
+
     // Instead of returning null when there's no bike selected,
     // render a message prompting the user to select a bike.
     const renderBookingOrPrompt = () => {
