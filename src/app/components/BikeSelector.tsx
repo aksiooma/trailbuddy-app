@@ -19,7 +19,7 @@ const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike 
 
     return (
         <div className="p-6 border border-gray-200 rounded-lg">
-            <h1 className="text-xl font-large mb-4 text-green-700">Select your Bike:</h1>
+            <h1 className="text-xl font-large mb-4 text-teal-500/50">Select your Bike:</h1>
             <ul className='text-lg font-medium'>
                 {bikes.map(bike => (
                     <li

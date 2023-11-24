@@ -24,6 +24,7 @@ interface ReservationItem {
     startDate: Date;
     endDate: Date | null; // Allow endDate to be null
     reservationId?: string; // ID of the reservation document
+    price: number;
 }
 
 
@@ -84,17 +85,6 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         }
     }, [selectedBike]);
 
-    // Update selectedQuantity when available stock changes and it's higher than the current selectedQuantity
-    useEffect(() => {
-        if (startDate && selectedBike) {
-            const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-            const currentAvailableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
-    
-            if (selectedQuantity > currentAvailableStock) {
-                setSelectedQuantity(currentAvailableStock); // Update to the max available stock
-            }
-        }
-    }, [dateAvailability, selectedBike, startDate, selectedQuantity]);
 
     //DateRange for recalculating the availability for datepicker
     function generateDateRange(start: Date, end: Date) {
@@ -220,7 +210,8 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                 quantity: selectedQuantity,
                 startDate: startDate,
                 endDate: endDate || startDate,
-                reservationId: reservationRef.id
+                reservationId: reservationRef.id,
+                price: selectedBike.price
             };
 
             setBasket(prevBasket => [...prevBasket, newBasketItem]);
@@ -287,43 +278,60 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
         }
     }, [basket, user]);
 
-
-    const renderQuantitySelector = () => {
-        if (!selectedBike || !startDate) {
-            return null;
-        }
-    
-        // Calculate available stock here
-        const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-        const availableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
-    
-        // If no bikes are available, show a message instead of the selector
-        if (availableStock === 0) {
-            return <p className="text-red-500">Fully Booked</p>;
-        }
-    
-        const options = [];
-        for (let i = 1; i <= availableStock; i++) {
-            options.push(<option key={i} value={i}>{i}</option>);
-        }
-    
-        return (
-            <div className="flex flex-col">
-                <label htmlFor="quantity-selector" className="text-lg font-medium">Select Quantity:</label>
-                <select
-                    id="quantity-selector"
-                    className='rounded-lg p-1 mt-2 mb-2 text-xl dark text-foreground border-1 border-white-500/50'
-                    value={selectedQuantity}
-                    onChange={e => setSelectedQuantity(Number(e.target.value))}
-                    aria-label="Select Quantity"
-                >
-                    {options}
-                </select>
-            </div>
-        );
-    };
+    function calculateDayDifference(startDate: { getTime: () => number; }, endDate: { getTime: () => number; }) {
+        const msPerDay = 24 * 60 * 60 * 1000;
+        const diffInMs = endDate.getTime() - startDate.getTime();
+        return Math.round(diffInMs / msPerDay);
+    }
 
 
+
+    // Update selectedQuantity when available stock changes
+useEffect(() => {
+    if (!selectedBike || !startDate) {
+        return;
+    }
+
+    const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+    const currentAvailableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
+
+    if (selectedQuantity > currentAvailableStock || selectedQuantity === 0) {
+        setSelectedQuantity(currentAvailableStock > 0 ? 1 : 0); // Set to 1 if stock is available, otherwise 0
+    }
+}, [dateAvailability, selectedBike, startDate, selectedQuantity]);
+
+const renderQuantitySelector = () => {
+    if (!selectedBike || !startDate) {
+        return null;
+    }
+
+    const dateString = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+    const availableStock = dateAvailability[dateString]?.[selectedBike.id] ?? selectedBike.stock;
+
+    if (availableStock === 0) {
+        return <p className="text-red-500">Fully Booked</p>;
+    }
+
+    const options = [];
+    for (let i = 1; i <= availableStock; i++) {
+        options.push(<option key={i} value={i}>{i}</option>);
+    }
+
+    return (
+        <div className="flex flex-col">
+            <label htmlFor="quantity-selector" className="text-lg font-medium">Select Quantity:</label>
+            <select
+                id="quantity-selector"
+                className='rounded-lg p-1 mt-2 mb-2 text-xl dark text-foreground border-1 border-white-500/50'
+                value={selectedQuantity}
+                onChange={e => setSelectedQuantity(Number(e.target.value))}
+                aria-label="Select Quantity"
+            >
+                {options}
+            </select>
+        </div>
+    );
+};
     // Instead of returning null when there's no bike selected,
     // render a message prompting the user to select a bike.
     const renderBookingOrPrompt = () => {
@@ -366,31 +374,47 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout 
                                     }`} onClick={addToBasket}>Add to Basket</button>
                         </motion.div>
                     )}
-                    <motion.div className="basket p-5 border-4 border-green-500/50 rounded-lg mt-5 bg-white"
+                    <motion.div className="basket p-5 border-4 border-teal-700/50 rounded-lg mt-5 bg-white"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.5 }}>
-                        {basket.map((item, index) => (
-                            <motion.div className='flex justify-between items-center p-4 border-2 border-green-500/50 rounded-lg bg-black' key={index}
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                transition={{ duration: 0.5 }}>
-                                {item.name}, <br /> Quantity: {item.quantity}, <br />Date:<br />
-                                {item.startDate.toLocaleDateString('en-GB')}
-                                {item.endDate ? ` - ${item.endDate.toLocaleDateString('en-GB')}` : ''}
-                                <button color="primary" className='p-2 hover:bg-danger-200 text-white font-bold rounded-full transition-colors duration-200 mx-5' onClick={() => removeFromBasket(index)}><svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24" height="24" viewBox="0 0 16 16">
-                                    <circle cx="8" cy="8" r="8" fill="#fe3155"></circle><polygon fill="#fff" points="11.536,10.121 9.414,8 11.536,5.879 10.121,4.464 8,6.586 5.879,4.464 4.464,5.879 6.586,8 4.464,10.121 5.879,11.536 8,9.414 10.121,11.536"></polygon>
-                                </svg></button></motion.div>
+                        {basket.map((item, index) => {
+                            // Convert strings to Date objects
+                            const startDate = new Date(item.startDate);
+                            const endDate = item.endDate ? new Date(item.endDate) : startDate;
+                            // Calculate day difference
+                            const dayDifference = calculateDayDifference(startDate, endDate);
+                            return (
 
-                        ))}
+                                <motion.div className='p-4 border-2 border-teal-400/50 rounded-lg bg-black flex flex-col justify-between items-start' key={index}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    transition={{ duration: 0.5 }}>
+                                    <h1 className='text-lg '>{item.name}</h1> <hr></hr><h3>Date:
+                                        <span className='text-lg text-teal-400/50'> {item.startDate.toLocaleDateString('en-GB')}
+                                            {item.endDate ? ` - ${item.endDate.toLocaleDateString('en-GB')}` : ''}</span></h3>
+                                    <h2>Quantity: <span className='text-lg text-teal-400/50'>{item.quantity}</span></h2>
+                                    <hr></hr>
+                                    <h4 className='mt-1'>Price: <span className='text-lg text-teal-500/50'>{item.price * (item.quantity + dayDifference)} €</span></h4>
+                                    <div className="w-full flex justify-center mt-4">
+                                        <button color="primary" className='p-2 hover:bg-danger-200 text-white font-bold rounded-full transition-colors duration-200' onClick={() => removeFromBasket(index)}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24" height="24" viewBox="0 0 16 16">
+                                                <circle cx="8" cy="8" r="8" fill="#fe3155"></circle>
+                                                <polygon fill="#fff" points="11.536,10.121 9.414,8 11.536,5.879 10.121,4.464 8,6.586 5.879,4.464 4.464,5.879 6.586,8 4.464,10.121 5.879,11.536 8,9.414 10.121,11.536"></polygon>
+                                            </svg>
+                                        </button>
+                                    </div></motion.div>
+
+                            );
+                        })}
                     </motion.div>
                 </motion.div>
             );
         } else {
             return (
-                <motion.div className='mt-2 text-xl p-6 border-2 border-green-500/50 rounded-lg mt-5' initial={{ opacity: 0 }}
+                <motion.div className='mt-2 text-xl p-6 border-2 border-teal-500/50 rounded-lg mt-5' initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.5 }}>Please select a bike to continue</motion.div>

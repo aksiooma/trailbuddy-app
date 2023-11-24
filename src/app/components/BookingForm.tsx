@@ -27,7 +27,7 @@ const BookingForm = () => {
 
     return (
         <form onSubmit={handleEmailSignIn} className='flex flex-col space-y-4 p-6 border border-gray-300 rounded-lg'>
-            <label>Existing User Login:</label>
+            <label className='text-lg'>Existing User Login:</label>
             <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" className='rounded p-1 border-2 border-teal-500/50 hover:border-teal-700/50 focus:outline-none focus:bg-slate-700/50' />
             <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password" className='rounded p-1 border-2 border-teal-500/50 hover:border-teal-700/50  focus:outline-none focus:bg-slate-700/50' />
             {error && <motion.div className="text-red-500" initial={{ opacity: 0 }}
