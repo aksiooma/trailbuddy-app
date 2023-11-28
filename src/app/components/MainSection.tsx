@@ -12,7 +12,7 @@ import {commonImageProps} from './Types/types'
 // Images array
 const images = [
   {
-    src: '/assets/Landscape_2.webp',
+    src: '/assets/mtb.webp',
     alt: 'Trail Image 1',
   },
   {

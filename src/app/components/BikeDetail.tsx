@@ -3,12 +3,11 @@ import React from 'react';
 import { BikeDetailProps } from './Types/types'
 import { motion } from 'framer-motion';
 import Image from 'next/image';
-import {commonImageProps} from './Types/types'
+import { commonImageProps } from './Types/types'
 import BikeDetailAccordion from './BikeDetailAccordion';
 
-
 const BikeDetail: React.FC<BikeDetailProps & { onClose: () => void }> = ({ bike, onClose }) => {
-    
+
     return (
         <motion.div className="p-6 border border-gray-300 rounded-lg"
             initial={{ opacity: 0 }}
@@ -26,12 +25,10 @@ const BikeDetail: React.FC<BikeDetailProps & { onClose: () => void }> = ({ bike,
                 </svg>
                 </button>
             </motion.div>
-            
-            {bike.image && <Image className='img rounded'  {...commonImageProps} src={bike.image} alt={bike.name}/>}
-            <div className='p-2 mt-2 mb-2 border-1 border-teal-100/50 rounded'>{bike.price} € / day</div>
-           <BikeDetailAccordion bike={bike} />
-          
 
+            {bike.image && <Image className='img rounded'  {...commonImageProps} src={bike.image} alt={bike.name} />}
+            <div className='p-2 mt-2 mb-2 border-1 border-teal-100/50 rounded'>{bike.price} € / day</div>
+            <BikeDetailAccordion bike={bike} Small={0} Medium={0} Large={0} selectedSize={''} />
         </motion.div>
     );
 };

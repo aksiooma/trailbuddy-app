@@ -1,7 +1,7 @@
 import React from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { AvailabilityData } from './Types/types';
+import { AvailabilityData, BikeSizeKey } from './Types/types';
 import { Bike } from './Types/types';
 
 
@@ -12,6 +12,7 @@ interface BookingDatePickerProps {
     setEndDate: (date: Date | null) => void;
     availabilityData: AvailabilityData;
     selectedBike: Bike | null;
+    selectedSize: BikeSizeKey | null; // Add this
 }
 
 const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
@@ -20,16 +21,15 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
     setStartDate,
     setEndDate,
     availabilityData,
-    selectedBike
+    selectedBike,
+    selectedSize
 }) => {
     const renderDayContents = (day: number, date: Date) => {
-        // Format the date as YYYY-MM-DD using local time
         const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-        let availableStock = selectedBike?.stock ?? 0;
+        let availableStock = 0;
 
-        // Check availability for the specific bike
-        if (selectedBike && availabilityData[dateString] && availabilityData[dateString][selectedBike.id] !== undefined) {
-            availableStock = availabilityData[dateString][selectedBike.id];
+        if (selectedBike && selectedSize && availabilityData[dateString] && availabilityData[dateString][selectedBike.id]) {
+            availableStock = availabilityData[dateString][selectedBike.id][selectedSize] || 0;
         }
 
         // Compare dates in local time
@@ -42,7 +42,7 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
         const isSelectedDate = startDate && currentDate.getTime() === startDate.getTime();
         const isInDateRange = startDate && endDate && currentDate >= startDate && currentDate <= endDate;
 
-        
+
 
         // Styles for selected and in-range days
         const selectedDayStyle = 'bg-teal-500/50 text-white border-1 border-gray-500/50';
@@ -66,8 +66,6 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
 
         return <div className={`${styles} p-1`}>{day}</div>;
     };
-
-
 
     //Set the max available date range to 120 days
     const startDateRange = new Date();
@@ -102,7 +100,7 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
         setStartDate(start);
     };
 
-    
+
 
     return (
         <DatePicker

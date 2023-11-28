@@ -2,18 +2,15 @@
 import React, { useState, useEffect } from 'react';
 import { User, getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut } from "firebase/auth";
 import Booking from './Booking';
-import { Bike } from './Types/types'
+import { BikeSizeKey, BookingProps } from './Types/types'
 import { motion } from 'framer-motion';
 
 import BookingForm from './BookingForm';
 
 
 // Add a prop type for selectedBike
-interface BookingProps {
-    selectedBike: Bike | null; // Allow selectedBike to be null
-}
 
-const Login: React.FC<BookingProps> = ({ selectedBike }) => {
+const Login: React.FC<BookingProps> = ({ selectedBike, selectedSize}) => {
     const [user, setUser] = useState<User | null>(null);
     const auth = getAuth();
 
@@ -48,7 +45,10 @@ const Login: React.FC<BookingProps> = ({ selectedBike }) => {
             console.error(error);
         }
     };
-
+    
+    function isBikeSizeKey(size: string | null): size is BikeSizeKey {
+        return ['Small', 'Medium', 'Large'].includes(size ?? '');
+    }
 
     // Function to handle logout
     const handleLogout = () => {
@@ -65,7 +65,9 @@ const Login: React.FC<BookingProps> = ({ selectedBike }) => {
 
 
     if (user) {
-        return <Booking selectedBike={selectedBike} user={user} onLogout={handleLogout} />;
+        // Ensure selectedSize is a valid BikeSizeKey or null
+        const validatedSize = isBikeSizeKey(selectedSize) ? selectedSize : null;
+        return <Booking selectedBike={selectedBike} selectedSize={validatedSize} user={user} onLogout={handleLogout} />;
     }
 
     return (
