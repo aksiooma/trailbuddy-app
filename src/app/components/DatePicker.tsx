@@ -13,6 +13,7 @@ interface BookingDatePickerProps {
     availabilityData: AvailabilityData;
     selectedBike: Bike | null;
     selectedSize: BikeSizeKey | null; // Add this
+   
 }
 
 const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
@@ -22,7 +23,8 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
     setEndDate,
     availabilityData,
     selectedBike,
-    selectedSize
+    selectedSize,
+   
 }) => {
     const renderDayContents = (day: number, date: Date) => {
         const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -99,8 +101,6 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
         // Update start date
         setStartDate(start);
     };
-
-
 
     return (
         <DatePicker

@@ -1,10 +1,15 @@
 // components/BookingForm.tsx
 import React, { useState } from 'react';
 import { User, signInWithEmailAndPassword, getAuth } from "firebase/auth";
-
+import { setAndStoreLoginMethod } from './utils/utils';
 import { motion } from 'framer-motion';
 
-const BookingForm = () => {
+interface BookingFormProps {
+    setLoginMethod: React.Dispatch<React.SetStateAction<string>>;
+   
+}
+
+const BookingForm: React.FC<BookingFormProps> = ({ setLoginMethod   }) => {
     const [user, setUser] = useState<User | null>(null);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -17,6 +22,7 @@ const BookingForm = () => {
         try {
             const result = await signInWithEmailAndPassword(auth, email, password);
             setUser(result.user);
+            setAndStoreLoginMethod("Email", setLoginMethod);
         } catch (error) {
             console.error(error);
             // Set a user-friendly error message

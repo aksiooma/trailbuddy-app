@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DatePicker from './DatePicker';
 import { Bike, BikeSizeKey } from './Types/types';
-import { runTransaction, doc, onSnapshot, collection, serverTimestamp, deleteDoc, getDocs, Timestamp,} from "firebase/firestore"
+import { runTransaction, doc, onSnapshot, collection, serverTimestamp, deleteDoc, Timestamp, } from "firebase/firestore"
 import db from "./FirestoreInit"
 import { motion } from 'framer-motion';
 import { AvailabilityData } from './Types/types';
@@ -9,15 +9,17 @@ import { User } from "firebase/auth";
 import BasketComponent from './BasketComponent';
 import { useFetchBikes } from './hooks/useFetchBikes'; // Adjust the import path as needed
 
+
+
 // Define the props expected by BookingFlow
 interface BookingFlowProps {
     selectedBike: Bike | null; // Allow selectedBike to be null
     user: User | null;
     onLogout: () => void;
     selectedSize: BikeSizeKey | null;
+    loginMethod: string;
 
 }
-
 
 // Define the structure for a reservation item
 interface ReservationItem {
@@ -50,12 +52,28 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [basket, setBasket] = useState<ReservationItem[]>([]);
+
     const [selectedBikeAvailableStock, setSelectedBikeAvailableStock] = useState<number>(0);
     const [dateAvailability, setDateAvailability] = useState<AvailabilityData>({});
-
     const [allReservations, setAllReservations] = useState<Reservation[]>([]);
     const [isAdding, setIsAdding] = useState(false);
     const isAddToBasketDisabled = !startDate || selectedQuantity <= 0 || selectedBikeAvailableStock <= 0 || isAdding || !selectedBike || !selectedSize;
+
+    const [showConfirmation, setShowConfirmation] = useState(false);
+    const [showDatepicker, setShowDatepicker] = useState(true);
+    const [isExtendedViewVisible, setIsExtendedViewVisible] = useState(false);
+    const [loginMethod, setLoginMethod] = useState('');
+
+
+    useEffect(() => {
+        // Retrieve login method from localStorage
+        const storedLoginMethod = localStorage.getItem('loginMethod');
+        if (storedLoginMethod) {
+            setLoginMethod(storedLoginMethod);
+        }
+    }, []);
+
+
 
     useEffect(() => {
         // Real-time listener for reservations
@@ -71,7 +89,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
         return () => unsubscribe(); // Cleanup function to unsubscribe on unmount
     }, []);
 
-   
+
     const getStockBySelectedSize = (bike: Bike | null, selectedSize: BikeSizeKey | null): number => {
         if (!bike || !selectedSize) return 0;
 
@@ -84,7 +102,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
             setSelectedBikeAvailableStock(getStockBySelectedSize(selectedBike, selectedSize));
         } else {
             // Handle the case when no bike is selected
-            setSelectedBikeAvailableStock(0); // or another appropriate default value
+            setSelectedBikeAvailableStock(0);
         }
     }, [selectedBike, selectedSize]);
 
@@ -110,9 +128,9 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
         startDateRange.setHours(0, 0, 0, 0);
         const endDateRange = new Date(startDateRange);
         endDateRange.setDate(endDateRange.getDate() + 120);
-    
+
         const allDatesInRange = generateDateRange(startDateRange, endDateRange);
-    
+
         // Initialize availability for each bike and each date
         allDatesInRange.forEach(dateString => {
             newAvailabilityData[dateString] = {};
@@ -124,14 +142,14 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
                 };
             });
         });
-    
+
         // Adjust availability based on Firestore reservations only
         allReservations.forEach(reservation => {
             const reservationDates = generateDateRange(
                 new Date(reservation.startDate.toDate()),
                 new Date(reservation.endDate.toDate())
             );
-    
+
             reservationDates.forEach(dateString => {
                 if (newAvailabilityData[dateString] && reservation.bikeId in newAvailabilityData[dateString]) {
                     const sizeKey = reservation.size;
@@ -141,11 +159,11 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
                 }
             });
         });
-    
+
         // Update availability data state
         setDateAvailability(newAvailabilityData);
     }, [allReservations, availableBikes]);
-    
+
 
     // Debounce function
     function debounce<F extends (...args: any[]) => void>(func: F, waitFor: number): (...args: Parameters<F>) => ReturnType<F> {
@@ -228,7 +246,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
     // This function removes an item from the basket and updates Firestore.
     const removeFromBasket = async (index: number) => {
         const itemToRemove = basket[index];
-    
+
         if (itemToRemove.reservationId) {
             try {
                 await deleteDoc(doc(db, "reservations", itemToRemove.reservationId));
@@ -236,19 +254,19 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
                 console.error("Failed to delete reservation from Firestore: ", error);
             }
         }
-    
+
         const newBasket = basket.filter((_, i) => i !== index);
         setBasket(newBasket);
-    
+
         if (user) {
             const userBasketKey = `basket_${user.uid}`;
             localStorage.setItem(userBasketKey, JSON.stringify({ items: newBasket, timestamp: new Date().getTime() }));
         }
-    
+
         // Trigger a recalculation of availability after modifying the basket
         recalculateAvailability();
     };
-    
+
 
 
 
@@ -302,7 +320,6 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
 
             currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
         }
-
         return minAvailableQuantity;
     };
 
@@ -333,7 +350,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
         if (selectedQuantity > currentAvailableStock || selectedQuantity === 0) {
             setSelectedQuantity(currentAvailableStock > 0 ? 1 : 0);
         }
-    }, [dateAvailability, selectedBike, startDate, endDate, selectedQuantity, selectedSize]);
+    }, [dateAvailability, selectedBike, startDate, endDate, selectedQuantity, selectedSize, getMinAvailableQuantityForRange]);
 
 
 
@@ -378,9 +395,33 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
         );
     };
 
+
+
+    const handleCheckoutClick = () => {
+        setShowConfirmation(true);
+    };
+
+    const handleProceedToCheckout = () => {
+        setIsExtendedViewVisible(true);
+        setShowDatepicker(false);
+    };
+
+    useEffect(() => {
+        if (basket.length === 0) {
+            setIsExtendedViewVisible(false); // Hide extended view when basket is empty
+        }
+    }, [basket.length, setIsExtendedViewVisible]);
+
+    // const handleCheckout = () => {
+    //     console.log("Booking confirmed");
+    //     setIsExtendedViewVisible(false); // Hides the extended view after confirmation
+    // };
+
+
     // Instead of returning null when there's no bike selected,
     // render a message prompting the user to select a bike.
     const renderBookingOrPrompt = () => {
+
         if (selectedBike && selectedSize) {
             return (
                 <motion.div className="booking-flow p-6 border border-gray-200 rounded-lg" initial={{ opacity: 0 }}
@@ -389,6 +430,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
                     transition={{ duration: 0.5 }}>
                     <motion.div className='header flex justify-between items-center'>
                         <h1 className='text-lg'>Make a booking:</h1>
+
                         <button className="border-2 border-rose-500/50 p-2 mb-5 rounded-full hover:bg-danger-100 border-gray-300 text-white font-bold transition-colors duration-200" onClick={onLogout}><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                         </svg></button>
@@ -410,6 +452,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
                                         availabilityData={dateAvailability}
                                         selectedBike={selectedBike} // Pass the selected bike
                                         selectedSize={selectedSize}
+
                                     />
                                 )}
 
@@ -422,19 +465,37 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
                         </motion.div>
                     )}
                     {/* Use BasketComponent */}
+
                     <BasketComponent
                         basket={basket}
+                        db={db}
                         removeFromBasket={removeFromBasket}
-
+                        onCheckoutClick={handleCheckoutClick}
+                        onHandleCheckout={handleProceedToCheckout}
+                        user={user}
+                        IsExtendedViewVisible={isExtendedViewVisible}
+                        showConfirmation={showConfirmation}
+                        showDatepicker={showDatepicker}
+                        loginMethod={loginMethod}
+                        setBasket={setBasket}
                     />
+                    {showConfirmation}
+
                 </motion.div>
             );
         } else {
             return (
-                <motion.div className='mt-2 text-xl p-6 border-2 border-teal-500/50 rounded-lg mt-5' initial={{ opacity: 0 }}
+                <motion.div className='flex items-center p-6 border-2 border-teal-500/50 rounded-lg' initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5 }}>Please select a bike to continue</motion.div>
+                    transition={{ duration: 0.5 }}>
+                    <div className="flex-grow text-xl">Select a bike to continue</div>
+                    <button className="border-2 border-rose-500/50 p-2 rounded-full hover:bg-danger-100 border-gray-300 text-white font-bold transition-colors duration-200" onClick={onLogout}>
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                        </svg>
+                    </button>
+                </motion.div>
             );
         }
     };

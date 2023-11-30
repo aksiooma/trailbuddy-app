@@ -21,7 +21,7 @@ const config: Config = {
         },
       },
       maxWidth: {
-        'custom-large': '75rem',
+        'custom-large': '80rem',
       },
 
       
