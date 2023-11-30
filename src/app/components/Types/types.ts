@@ -55,3 +55,14 @@ export const commonImageProps = {
   height: 500,
   quality: 100,
 };
+
+export interface ReservationItem {
+  bikeId: string;
+  name: string;
+  quantity: number;
+  startDate: Date;
+  endDate: Date | null; // Allow endDate to be null
+  reservationId ?: string; // ID of the reservation document
+  price: number;
+  size: BikeSizeKey;
+}
