@@ -40,11 +40,11 @@ export interface BookingProps {
 
 export interface AvailabilityData {
   [date: string]: {
-      [bikeId: string]: {
-          Small: number;
-          Medium: number;
-          Large: number;
-      };
+    [bikeId: string]: {
+      Small: number;
+      Medium: number;
+      Large: number;
+    };
   };
 }
 
@@ -55,11 +55,3 @@ export const commonImageProps = {
   height: 500,
   quality: 100,
 };
-
-
-// export interface SelectedBike {
-//   bike: Bike;
-//   size: 'S' | 'M' | 'L';
-//   quantity: number;
-//   dates: { start: Date; end: Date };
-// }

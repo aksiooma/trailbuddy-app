@@ -3,7 +3,20 @@ import { motion } from 'framer-motion';
 import { User } from 'firebase/auth';
 import { doc, updateDoc } from "firebase/firestore"
 import { Firestore } from 'firebase/firestore';
-import { ReservationItem } from './Types/types'
+import { BikeSizeKey } from './Types/types';
+
+
+export interface ReservationItem {
+    bikeId: string;
+    name: string;
+    quantity: number;
+    startDate: Date;
+    endDate: Date | null; // Allow endDate to be null
+    reservationId ?: string; // ID of the reservation document
+    price: number;
+    size: BikeSizeKey;
+  
+  }
 
 // Define the type for a basket item
 type BasketItem = {

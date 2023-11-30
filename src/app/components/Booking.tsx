@@ -306,9 +306,9 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
         }
     }, [basket, user]);
 
-    const getMinAvailableQuantityForRange = (startDate: Date, endDate: Date, selectedBike: Bike, selectedSize: BikeSizeKey) => {
+    const getMinAvailableQuantityForRange = useCallback((startDate: Date, endDate: Date, selectedBike: Bike, selectedSize: BikeSizeKey) => {
         let minAvailableQuantity = Infinity;
-
+    
         let currentDate = new Date(startDate);
         while (currentDate <= endDate) {
             const dateString = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
@@ -317,12 +317,12 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
                 const availableStock = bikeAvailability[selectedSize];
                 minAvailableQuantity = Math.min(minAvailableQuantity, availableStock);
             }
-
+    
             currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
         }
         return minAvailableQuantity;
-    };
-
+    }, [dateAvailability]); // Include all the dependencies the function relies on
+    
 
     // Update selectedQuantity when available stock changes
     useEffect(() => {
