@@ -38,6 +38,15 @@ type BasketComponentProps = {
 };
 
 
+const dummyUserData = {
+    firstName: 'User',
+    lastName: 'Dummy',
+    email: 'dummymail@example.com',
+    phone: "1234567890"
+};
+
+
+
 //Calculate day difference
 function calculateDayDifference(startDate: { getTime: () => number; }, endDate: { getTime: () => number; }) {
     const msPerDay = 24 * 60 * 60 * 1000;
@@ -70,13 +79,6 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
 }) => {
 
 
-    const dummyUserData = {
-        firstName: 'User',
-        lastName: 'Dummy',
-        email: 'dummymail@example.com',
-        phone: "1234567890"
-    };
-
     useEffect(() => {
         if (loginMethod === "Google" || loginMethod === "Email") {
 
@@ -89,7 +91,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
                 phone: '',
             });
         }
-    }, [loginMethod, dummyUserData]);
+    }, [loginMethod]);
 
 
     const renderCheckoutButton = () => {
