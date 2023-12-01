@@ -89,7 +89,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
                 phone: '',
             });
         }
-    }, [loginMethod]);
+    }, [loginMethod, dummyUserData]);
 
 
     const renderCheckoutButton = () => {
