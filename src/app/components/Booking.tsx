@@ -308,7 +308,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
 
     const getMinAvailableQuantityForRange = useCallback((startDate: Date, endDate: Date, selectedBike: Bike, selectedSize: BikeSizeKey) => {
         let minAvailableQuantity = Infinity;
-    
+
         let currentDate = new Date(startDate);
         while (currentDate <= endDate) {
             const dateString = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
@@ -317,12 +317,12 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
                 const availableStock = bikeAvailability[selectedSize];
                 minAvailableQuantity = Math.min(minAvailableQuantity, availableStock);
             }
-    
+
             currentDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() + 1);
         }
         return minAvailableQuantity;
     }, [dateAvailability]); // Include all the dependencies the function relies on
-    
+
 
     // Update selectedQuantity when available stock changes
     useEffect(() => {
@@ -484,18 +484,22 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
                 </motion.div>
             );
         } else {
+
+            // Render the prompt based on whether a bike is selected or not
+            const promptMessage = selectedBike ? "Select a size to continue" : "Select a bike to continue";
+
             return (
                 <motion.div className='flex items-center p-6 border-2 border-teal-500/50 rounded-lg' initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5 }}>
-                    <div className="flex-grow text-xl">Select a bike to continue</div>
-                    <button className="border-2 border-rose-500/50 p-2 rounded-full hover:bg-danger-100 border-gray-300 text-white font-bold transition-colors duration-200" onClick={onLogout}>
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
-                        </svg>
-                    </button>
-                </motion.div>
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}>
+                <div className="flex-grow text-xl">{promptMessage}</div>
+                <button className="border-2 border-rose-500/50 p-2 rounded-full hover:bg-danger-100 border-gray-300 text-white font-bold transition-colors duration-200" onClick={onLogout}>
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                    </svg>
+                </button>
+            </motion.div>
             );
         }
     };
