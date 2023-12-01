@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Bike, BikeSelectorProps, BikeSizeKey } from './Types/types'
-import { useFetchBikes } from './hooks/useFetchBikes'; // Adjust the import path as needed
-
+import { useFetchBikes } from './hooks/useFetchBikes';
 
 const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike, onSizeSelect, selectedSize  }) => {
     const bikes = useFetchBikes()
-    // const [selectedSize, setSelectedSize] = useState<string | null>(null);
   
     const handleSizeSelect = (size: string) => {
         if (isBikeSizeKey(size)) {
