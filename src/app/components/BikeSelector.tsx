@@ -1,3 +1,4 @@
+//BikeSelector.tsx
 import React from 'react';
 import { Bike, BikeSelectorProps, BikeSizeKey } from './Types/types'
 import { useFetchBikes } from './hooks/useFetchBikes';

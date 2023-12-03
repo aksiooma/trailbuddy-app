@@ -9,8 +9,6 @@ import { User } from "firebase/auth";
 import BasketComponent from './BasketComponent';
 import { useFetchBikes } from './hooks/useFetchBikes'; // Adjust the import path as needed
 
-
-
 // Define the props expected by BookingFlow
 interface BookingFlowProps {
     selectedBike: Bike | null; // Allow selectedBike to be null
