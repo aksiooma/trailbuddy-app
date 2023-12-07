@@ -9,9 +9,9 @@ import { User } from "firebase/auth";
 import BasketComponent from './BasketComponent';
 import { useFetchBikes } from './hooks/useFetchBikes'; // Adjust the import path as needed
 
-// Define the props expected by BookingFlow
+
 interface BookingFlowProps {
-    selectedBike: Bike | null; // Allow selectedBike to be null
+    selectedBike: Bike | null; 
     user: User | null;
     onLogout: () => void;
     selectedSize: BikeSizeKey | null;
@@ -19,17 +19,15 @@ interface BookingFlowProps {
 
 }
 
-// Define the structure for a reservation item
 interface ReservationItem {
     bikeId: string;
     name: string;
     quantity: number;
     startDate: Date;
-    endDate: Date | null; // Allow endDate to be null
-    reservationId?: string; // ID of the reservation document
+    endDate: Date | null;
+    reservationId?: string;
     price: number;
     size: BikeSizeKey;
-
 }
 
 interface Reservation {

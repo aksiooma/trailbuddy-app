@@ -6,9 +6,7 @@ import { BikeSizeKey, BookingProps } from './Types/types'
 import { motion } from 'framer-motion';
 import BookingForm from './BookingForm';
 
-
 // Add a prop type for selectedBike
-
 const Login: React.FC<BookingProps> = ({ selectedBike, selectedSize }) => {
     const [user, setUser] = useState<User | null>(null);
     const auth = getAuth();
