@@ -36,14 +36,18 @@ git clone https://github.com/aksiooma/trailbuddy-app
 ```bash
 npm install
 ```
-3. Run the development server
+
+3. Update enviroment variables for local development by creating .env file 
+
+
+4. Run the development server
 
 ```bash
 npm run dev
 ```
 Open http://localhost:3000 with your browser to see the result.
 
-4. Run tests
+5. Run tests
 
 ```bash
     npm test
