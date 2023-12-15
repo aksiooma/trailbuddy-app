@@ -10,6 +10,7 @@
     "test": "cross-env NODE_ENV=test jest --ci"
   },
   "dependencies": {
+    "@firebase/auth": "^1.5.1",
     "@nextui-org/react": "^2.2.9",
     "@types/swiper": "^6.0.0",
     "autoprefixer": "^10.4.16",

@@ -11,7 +11,7 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
   const [selectedBike, setSelectedBike] = useState<Bike | null>(null);
   const [isDetailVisible, setDetailVisible] = useState(false);
   const [selectedSize, setSelectedSize] = useState<BikeSizeKey | null>(null);
-
+  const [isRegistrationCompleted, setIsRegistrationCompleted] = useState(false);
 
   const onSizeSelect = (size: BikeSizeKey) => {
     setSelectedSize(size);
@@ -39,9 +39,6 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
     }
   }, [isDetailVisible]);
 
-
-
-
   return (
     <>
       <motion.div ref={ref} className="booking-container my-8 mx-auto px-4 max-w-7xl"
@@ -62,8 +59,8 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
             {isDetailVisible && selectedBike && <BikeDetail bike={selectedBike} onClose={() => setSelectedBike(null)} Small={0} Medium={0} Large={0} selectedSize={''} />}
           </div>
           <div className="lg:w-1/3">
-            <Login selectedBike={selectedBike} selectedSize={selectedSize} />
-          </div>
+            <Login selectedBike={selectedBike} selectedSize={selectedSize} setIsRegistrationCompleted={setIsRegistrationCompleted} isRegistrationCompleted={isRegistrationCompleted}/>
+          </div >
         </div>
       </motion.div>
     </>
