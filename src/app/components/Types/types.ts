@@ -1,3 +1,9 @@
+import { User } from "firebase/auth";
+
+export type RegistrationUserData = {
+    user: User | null;
+    token: string | undefined;
+};
 
 
 export interface Bike {
@@ -18,7 +24,7 @@ export interface BikeSelectorProps {
   onSelectBike: (bike: Bike) => void;
   selectedBike: Bike | null;
   onSizeSelect: (size: BikeSizeKey) => void;
-  selectedSize: BikeSizeKey | null; // Add this line
+  selectedSize: BikeSizeKey | null; 
 }
 
 
@@ -35,7 +41,10 @@ export interface BikeDetailProps {
 
 export interface BookingProps {
   selectedBike: Bike | null;
-  selectedSize: string | null; // Make it required here too
+  selectedSize: string | null;
+  setIsRegistrationCompleted: (isComplete: boolean) => void;
+  isRegistrationCompleted: boolean;
+ 
 }
 
 export interface AvailabilityData {

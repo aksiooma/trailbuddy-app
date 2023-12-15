@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User } from 'firebase/auth';
+import { User, getAuth } from 'firebase/auth';
 import { doc, updateDoc } from "firebase/firestore"
 import { Firestore } from 'firebase/firestore';
 import { ReservationItem } from './Types/types';
+import { isValidEmail, isValidPhone, isValidName, isFormCompleteAndValid } from './utils/validationUtils';
+import { fetchUserData } from './utils/fetchUserData'
 
-// Define the type for a basket item
+//The type of a basket item
 type BasketItem = {
     startDate: Date;
     endDate?: Date | null;
@@ -14,13 +16,11 @@ type BasketItem = {
     price: number;
     size: string;
     reservationId?: string;
-
 };
 
 
 type Basket = BasketItem[];
 type RemoveFromBasketFunction = (index: number) => void;
-
 
 type BasketComponentProps = {
     basket: Basket;
@@ -34,17 +34,10 @@ type BasketComponentProps = {
     loginMethod: string;
     setBasket: React.Dispatch<React.SetStateAction<ReservationItem[]>>;
     db: Firestore;
+    setIsRegistrationCompleted: (isComplete: boolean) => void;
+    isRegistrationCompleted: boolean;
 
 };
-
-
-const dummyUserData = {
-    firstName: 'User',
-    lastName: 'Dummy',
-    email: 'dummymail@example.com',
-    phone: "1234567890"
-};
-
 
 
 //Calculate day difference
@@ -74,25 +67,44 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
     setBasket,
     db,
     user,
+    setIsRegistrationCompleted,
+    isRegistrationCompleted
 
 
 }) => {
 
-
     useEffect(() => {
-        if (loginMethod === "Google" || loginMethod === "Email") {
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
 
-            setFormData(dummyUserData);
-        } else {
-            setFormData({
-                firstName: '',
-                lastName: '',
-                email: '',
-                phone: '',
-            });
-        }
-    }, [loginMethod]);
+        const loadData = async () => {
+            if (loginMethod === "Google" || loginMethod === "Email") {
+                if (currentUser && currentUser.uid) {
+                    const userData = await fetchUserData(currentUser.uid);
+                    if (userData) {
+                        setFormData({
+                            firstName: userData.firstName || '',
+                            lastName: userData.lastName || '',
+                            email: userData.email || '',
+                            phone: userData.phone || '',
+                        });
+                    }
+                }
+            } else {
+                setFormData({
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    phone: '',
+                });
+            }
+        };
 
+        loadData();
+
+        // Reset the flag
+        setIsRegistrationCompleted(false);
+    }, [loginMethod, isRegistrationCompleted]);
 
     const renderCheckoutButton = () => {
         if (basket.length > 0 && !IsExtendedViewVisible) {
@@ -155,33 +167,6 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
         }
     };
     const [payment, setPayment] = useState("Regular")
-
-    // Email validation
-    const isValidEmail = (email: string) => {
-        const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-        return re.test(email.toLowerCase());
-    };
-
-    // Phone number validation (simple version, mainly checking for numeric values)
-    const isValidPhone = (phone: string) => {
-        const re = /^[0-9\b]+$/;
-        return re.test(phone);
-    };
-
-    // Name validation (allowing alphabets and space)
-    const isValidName = (name: string) => {
-        return /^[a-zA-Z ]+$/.test(name);
-    };
-
-    const isFormCompleteAndValid = () => {
-        // Check if all fields are filled
-        const allFieldsFilled = formData.firstName && formData.lastName && formData.email && formData.phone;
-
-        // Check if there are no errors
-        const noErrors = !Object.values(formErrors).some(error => error !== '');
-
-        return allFieldsFilled && noErrors;
-    };
 
     const isFormValid = () => {
         if (loginMethod === "Anonymous") {
@@ -263,7 +248,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
                             onChange={handleInputChange}
                             disabled={loginMethod !== "Anonymous"} />
                         {formErrors.lastName && <div className="error-message text-danger-300 mt-1">{formErrors.lastName}</div>}
-                     
+
                         <input type="text"
                             placeholder="Email"
                             className='rounded p-3 w-full mt-1 disabled:opacity-60  disabled:text-gray-500'
@@ -281,15 +266,15 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
                             disabled={loginMethod !== "Anonymous"} />
                         {formErrors.phone && <div className="error-message text-danger-300 mt-1">{formErrors.phone}</div>}
                         <div className="payment-methods p-2 border-2 border-slate-500/50 rounded-lg mt-2 bg-teal-700/50">
-                        <h2 className='mx-2 text-white-900/50 mb-2 text-lg [text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)]'>Payment Method:</h2>
-                        <div className="p-4 border-t-4 shadow rounded p-2 bg-gray-900/50 border-1 border-slate-900/50">                            
-                            <input type="radio" name="payment" value="Regular" id="regular" checked={payment === "Regular"} className='' />
-                            <label htmlFor="regular" className='mx-2 text-white-900/50 [text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)]'>Pay at the retrieval</label>
+                            <h2 className='mx-2 text-white-900/50 mb-2 text-lg [text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)]'>Payment Method:</h2>
+                            <div className="p-4 border-t-4 shadow rounded p-2 bg-gray-900/50 border-1 border-slate-900/50">
+                                <input type="radio" name="payment" value="Regular" id="regular" defaultChecked={payment === "Regular"} className='' />
+                                <label htmlFor="regular" className='mx-2 text-white-900/50 [text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)]'>Pay at the retrieval</label>
                             </div>
                         </div>
                     </form>
                     <div className='flex flex-col justify-between items-center'>
-                        <button disabled={!isFormCompleteAndValid()} className='[text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)] mt-4 bg-teal-500/70 border-2 border-slate-500/50 hover:bg-orange-900/50 hover:text-white text-shadow text-white font-bold rounded-full transition-colors duration-200 py-2 px-4 text-slate-900/50 disabled:bg-gray-500/50' onClick={handleCheckout}>Confirm Booking</button>
+                        <button disabled={!isFormCompleteAndValid(formData, formErrors)} className='[text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)] mt-4 bg-teal-500/70 border-2 border-slate-500/50 hover:bg-orange-900/50 hover:text-white text-shadow text-white font-bold rounded-full transition-colors duration-200 py-2 px-4 text-slate-900/50 disabled:bg-gray-500/50' onClick={handleCheckout}>Confirm Booking</button>
                     </div>
                 </motion.div>
             );

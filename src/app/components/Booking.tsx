@@ -1,14 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DatePicker from './DatePicker';
 import { Bike, BikeSizeKey } from './Types/types';
-import { runTransaction, doc, onSnapshot, collection, serverTimestamp, deleteDoc, Timestamp, } from "firebase/firestore"
+import { runTransaction, doc, onSnapshot, collection, serverTimestamp, deleteDoc, Timestamp, getFirestore, getDoc, } from "firebase/firestore"
 import db from "./FirestoreInit"
 import { motion } from 'framer-motion';
 import { AvailabilityData } from './Types/types';
 import { User } from "firebase/auth";
 import BasketComponent from './BasketComponent';
 import { useFetchBikes } from './hooks/useFetchBikes'; // Adjust the import path as needed
-
+import RegistrationForm from './RegisterationForm';
+import Modal from './RegisterationModal';
 
 interface BookingFlowProps {
     selectedBike: Bike | null; 
@@ -16,6 +17,11 @@ interface BookingFlowProps {
     onLogout: () => void;
     selectedSize: BikeSizeKey | null;
     loginMethod: string;
+    isProfileComplete: boolean;
+    setIsProfileComplete: (isComplete: boolean) => void;
+    setRegistrationModalOpen: (isOpen: boolean) => void;
+    setIsRegistrationCompleted: (isComplete: boolean) => void;
+    isRegistrationCompleted: boolean;
 
 }
 
@@ -38,10 +44,9 @@ interface Reservation {
     quantity: number;
     size: BikeSizeKey;
 
-
 }
 
-const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout, selectedSize }) => {
+const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout, selectedSize, isProfileComplete, setIsProfileComplete, setRegistrationModalOpen, setIsRegistrationCompleted, isRegistrationCompleted}) => {
 
     const availableBikes = useFetchBikes();
     const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
@@ -59,7 +64,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
     const [showDatepicker, setShowDatepicker] = useState(true);
     const [isExtendedViewVisible, setIsExtendedViewVisible] = useState(false);
     const [loginMethod, setLoginMethod] = useState('');
-
+   
 
     useEffect(() => {
         // Retrieve login method from localStorage
@@ -187,7 +192,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
     }, [debouncedRecalculateAvailability, basket, allReservations]);
 
 
-    // This function adds the selected bike to the basket and updates Firestore.
+    
     // This function adds the selected bike to the basket and updates Firestore.
     const addToBasket = async () => {
         if (isAddToBasketDisabled) return;
@@ -391,7 +396,27 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
         );
     };
 
-
+    useEffect(() => {
+        const checkUserProfile = async () => {
+            if (user && loginMethod === "Google") {
+                const firestore = getFirestore();
+                const userDoc = doc(firestore, "USERS", user.uid);
+    
+                const docSnapshot = await getDoc(userDoc);
+                if (!docSnapshot.exists()) {
+                    // Profile is incomplete
+                    setIsProfileComplete(false);
+                    setRegistrationModalOpen(true);
+                } else {
+                    // Profile is complete
+                    setIsProfileComplete(true);
+                }
+            }
+        };
+    
+        checkUserProfile();
+    }, [user, loginMethod]);
+    
 
     const handleCheckoutClick = () => {
         setShowConfirmation(true);
@@ -408,15 +433,19 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
         }
     }, [basket.length, setIsExtendedViewVisible]);
 
-    // const handleCheckout = () => {
-    //     console.log("Booking confirmed");
-    //     setIsExtendedViewVisible(false); // Hides the extended view after confirmation
-    // };
-
 
     // Instead of returning null when there's no bike selected,
     // render a message prompting the user to select a bike.
     const renderBookingOrPrompt = () => {
+
+        if (user && loginMethod === "Google" && !isProfileComplete) {
+            // Continue showing the registration form modal
+            return (
+                <Modal isOpen={!isProfileComplete} onClose={() => {}} loginMethod= {loginMethod}>
+                    <RegistrationForm registrationUserData={{ user: user, token: undefined }} setIsProfileComplete={setIsProfileComplete} loginMethod= {loginMethod} setIsRegistrationCompleted={setIsRegistrationCompleted} />
+                </Modal>
+            );
+        }
 
         if (selectedBike && selectedSize) {
             return (
@@ -474,6 +503,8 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
                         showDatepicker={showDatepicker}
                         loginMethod={loginMethod}
                         setBasket={setBasket}
+                        setIsRegistrationCompleted={setIsRegistrationCompleted}
+                        isRegistrationCompleted={isRegistrationCompleted}
                     />
                     {showConfirmation}
 
