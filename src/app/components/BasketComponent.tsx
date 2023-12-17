@@ -72,7 +72,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
 
         // Reset the flag
         setIsRegistrationCompleted(false);
-    }, [loginMethod, isRegistrationCompleted]);
+    }, [loginMethod, isRegistrationCompleted, setIsRegistrationCompleted]);
 
     const renderCheckoutButton = () => {
         if (basket.length > 0 && !IsExtendedViewVisible) {

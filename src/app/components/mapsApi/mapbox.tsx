@@ -75,7 +75,7 @@ const MapboxComponent: React.FC<TrackProps> = ({ selectedTrack, onSelectTrack, t
                 console.error("Error loading GPX data: ", error);
             }
         });
-    }, [tracks]);
+    }, [tracks, onMapLoad]);
 
 
     useEffect(() => {

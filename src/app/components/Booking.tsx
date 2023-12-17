@@ -245,7 +245,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
             if (savedBasketData) {
                 const { items, timestamp } = JSON.parse(savedBasketData);
                 const currentTime = new Date().getTime();
-                if (currentTime - timestamp < 15 * 60 * 1000) { // 15 minutes
+                if (currentTime - timestamp < 30 * 60 * 1000) { // 60 minutes
                     const rehydratedBasket = items.map((item: { startDate: string | number | Date; endDate: string | number | Date; }) => ({
                         ...item,
                         startDate: new Date(item.startDate),
@@ -380,7 +380,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
         };
     
         checkUserProfile();
-    }, [user, loginMethod]);
+    }, [user, loginMethod, setIsProfileComplete]);
     
 
     const handleCheckoutClick = () => {
