@@ -7,8 +7,9 @@ import Image from 'next/image';
 import 'swiper/css';
 import 'swiper/css/navigation';
 import {commonImageProps} from './Types/types'
+import { MainSectionProps } from './Types/types';
 
-// Images array
+// hero images array
 const images = [
   {
     src: '/assets/mtb.webp',
@@ -21,10 +22,6 @@ const images = [
 
 ];
 
-// The prop types for MainSection
-type MainSectionProps = {
-  onBookNowClick: () => void; // This function will be called when the button is clicked
-};
 
 const MainSection: React.FC<MainSectionProps> = ({ onBookNowClick }) => {
 

@@ -1,20 +1,8 @@
 import React from 'react';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
-import { AvailabilityData, BikeSizeKey } from './Types/types';
-import { Bike } from './Types/types';
+import { BookingDatePickerProps } from './Types/types';
 
-
-interface BookingDatePickerProps {
-    startDate: Date | null;
-    endDate: Date | null;
-    setStartDate: (date: Date | null) => void;
-    setEndDate: (date: Date | null) => void;
-    availabilityData: AvailabilityData;
-    selectedBike: Bike | null;
-    selectedSize: BikeSizeKey | null; // Add this
-   
-}
 
 const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
     startDate,

@@ -33,7 +33,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-  ],
+, "src/app/components/AuthContext.js"  ],
   "exclude": [
     "node_modules"
   ]

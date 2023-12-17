@@ -2,16 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { User, getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, getAdditionalUserInfo } from "firebase/auth";
 import Booking from './Booking';
-import { BikeSizeKey, BookingProps } from './Types/types'
+import { BikeSizeKey, BookingProps, RegistrationUserData } from './Types/types'
 import { motion } from 'framer-motion';
 import BookingForm from './BookingForm';
 import RegistrationForm from './RegisterationForm';
 import Modal from './RegisterationModal';
-
-interface RegistrationUserData {
-    user: User | null;
-    token: string | undefined;
-}
 
 
 // Add a prop type for selectedBike
@@ -21,11 +16,9 @@ const Login: React.FC<BookingProps> = ({ selectedBike, selectedSize, setIsRegist
     const [loginMethod, setLoginMethod] = useState<string>('');
     const [registrationUserData, setRegistrationUserData] = useState<RegistrationUserData>({ user: null, token: undefined });
     const [isProfileComplete, setIsProfileComplete] = useState(true);
-    
 
     // State to control the visibility of the registration modal
     const [isRegistrationModalOpen, setRegistrationModalOpen] = useState(false);
-
 
     useEffect(() => {
         const storedLoginMethod = localStorage.getItem('loginMethod');
@@ -117,7 +110,6 @@ const Login: React.FC<BookingProps> = ({ selectedBike, selectedSize, setIsRegist
 
     };
 
-
     // Adjust the logic to open the registration modal
     useEffect(() => {
         if (user && isNewGoogleUser && !isProfileComplete) {
@@ -164,11 +156,11 @@ const Login: React.FC<BookingProps> = ({ selectedBike, selectedSize, setIsRegist
             transition={{ duration: 0.5 }}>
             <BookingForm setLoginMethod={setLoginMethod} />
             <div className="text-base text-gray-600 flex flex-col space-y-4 p-6 border border-gray-300 rounded-lg">
-                <button className="bg-teal-500/50 border-2 border-white-500/50 hover:bg-blue-700/50 text-white font-bold rounded-full transition-colors duration-200 p-2 mx-5" onClick={handleAnonymousSignIn}>Login as Visitor</button>
-                <button className="bg-teal-500/50 border-2 border-white-500/50 hover:bg-blue-700/50 text-white font-bold rounded-full transition-colors duration-200 p-1 mx-5" onClick={handleGoogleSignIn}>Login with Google</button>
+                <button className="bg-teal-500/50 border-2 border-white-500/50 hover:bg-blue-700/50 text-white rounded-full transition-colors duration-200 p-2 mx-5" onClick={handleAnonymousSignIn}>Login as Visitor</button>
+                <button className="bg-teal-500/50 border-2 border-white-500/50 hover:bg-blue-700/50 text-white rounded-full transition-colors duration-200 p-1 mx-5" onClick={handleGoogleSignIn}>Login with Google</button>
                 {!isRegistrationModalOpen && (
                     <button
-                        className="bg-green-300/50 border-2 border-white-500/50 hover:bg-blue-700/50 text-white font-bold rounded-full transition-colors duration-200 p-1 mx-5"
+                        className="bg-green-300/50 border-2 border-white-500/50 hover:bg-blue-700/50 text-white rounded-full transition-colors duration-200 p-1 mx-5"
                         onClick={handleNewUserClick}>
                         New User
                     </button>)}

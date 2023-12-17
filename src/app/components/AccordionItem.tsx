@@ -1,12 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-
-interface AccordionItemProps {
-  title: string;
-  children: React.ReactNode;
-  className: string;
-  ariaLabel: string;
-}
+import { AccordionItemProps } from './Types/types';
 
 const AccordionItem: React.FC<AccordionItemProps> = ({ title, children, className, ariaLabel }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -17,7 +11,7 @@ const AccordionItem: React.FC<AccordionItemProps> = ({ title, children, classNam
       <div className={className}>
         <button onClick={toggleOpen} aria-label={ariaLabel} className="flex justify-between items-center w-full">
           {title}
-          <span className={`arrow-icon ${isOpen ? 'rotate-90' : ''}`}>➤</span> {/* Arrow icon */}
+          <span className={`arrow-icon ${isOpen ? 'rotate-90' : ''}`}>➤</span>
         </button>
         <AnimatePresence>
           {isOpen && (

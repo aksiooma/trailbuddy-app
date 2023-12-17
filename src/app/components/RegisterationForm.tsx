@@ -2,22 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { createUserWithEmailAndPassword, getAuth, updateProfile } from "firebase/auth";
 import { doc, setDoc, getFirestore } from "firebase/firestore";
-import { RegistrationUserData } from './Types/types';
+import { FirebaseError, RegistrationFormProps } from './Types/types';
 
 import { isValidEmail, isValidPhone, isValidName, isValidPassword, isFormCompleteAndValid } from './utils/validationUtils';
 
-
-interface RegistrationFormProps {
-    registrationUserData: RegistrationUserData;
-    setIsProfileComplete: (isComplete: boolean) => void;
-    loginMethod: string; // Add this prop to accept the login method
-    setIsRegistrationCompleted: (isComplete: boolean) => void;
-}
-
-interface FirebaseError {
-    code: string;
-    message: string;
-}
 
 // A type guard function to check if an error is a FirebaseError
 function isFirebaseError(error: any): error is FirebaseError {
@@ -94,8 +82,8 @@ const RegistrationForm: React.FC<RegistrationFormProps> = ({ registrationUserDat
 
         // Check if the user is signing in via Google or email/password
         if (registrationUserData.user) {
+            
             // User signed in via Google, update or create Firestore document
-
             try {
                 await setDoc(doc(firestore, "USERS", registrationUserData.user.uid), userData);
                 console.log("Google user profile updated.");
