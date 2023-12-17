@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, getDocs } from 'firebase/firestore';
-import db from '../FirestoreInit'; 
+import { db }from '../FirestoreInit'; 
 import { Bike } from '../Types/types';
 
 export const useFetchBikes = () => {

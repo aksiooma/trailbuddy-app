@@ -17,8 +17,6 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
     setSelectedSize(size);
   };
 
-
-
   const onSelectBike = (bike: Bike) => {
     if (selectedBike && bike.id === selectedBike.id) {
       // Deselect the bike and reset size selection
@@ -41,7 +39,7 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
 
   return (
     <>
-      <motion.div ref={ref} className="booking-container my-8 mx-auto px-4 max-w-7xl"
+      <motion.div ref={ref} className="booking-container my-8 mx-auto px-4 max-w-7xl" id='booking'
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}

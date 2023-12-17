@@ -1,50 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import DatePicker from './DatePicker';
-import { Bike, BikeSizeKey } from './Types/types';
-import { runTransaction, doc, onSnapshot, collection, serverTimestamp, deleteDoc, Timestamp, getFirestore, getDoc, } from "firebase/firestore"
-import db from "./FirestoreInit"
+import { Bike, BikeSizeKey, BookingFlowProps, ReservationItem, Reservation} from './Types/types';
+import { runTransaction, doc, onSnapshot, collection, serverTimestamp, deleteDoc, getFirestore, getDoc, } from "firebase/firestore"
+import { db } from "./FirestoreInit"
 import { motion } from 'framer-motion';
 import { AvailabilityData } from './Types/types';
-import { User } from "firebase/auth";
 import BasketComponent from './BasketComponent';
 import { useFetchBikes } from './hooks/useFetchBikes'; // Adjust the import path as needed
 import RegistrationForm from './RegisterationForm';
 import Modal from './RegisterationModal';
 
-interface BookingFlowProps {
-    selectedBike: Bike | null; 
-    user: User | null;
-    onLogout: () => void;
-    selectedSize: BikeSizeKey | null;
-    loginMethod: string;
-    isProfileComplete: boolean;
-    setIsProfileComplete: (isComplete: boolean) => void;
-    setRegistrationModalOpen: (isOpen: boolean) => void;
-    setIsRegistrationCompleted: (isComplete: boolean) => void;
-    isRegistrationCompleted: boolean;
-
-}
-
-interface ReservationItem {
-    bikeId: string;
-    name: string;
-    quantity: number;
-    startDate: Date;
-    endDate: Date | null;
-    reservationId?: string;
-    price: number;
-    size: BikeSizeKey;
-}
-
-interface Reservation {
-    id: any;
-    bikeId: string;
-    startDate: Timestamp;
-    endDate: Timestamp;
-    quantity: number;
-    size: BikeSizeKey;
-
-}
 
 const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout, selectedSize, isProfileComplete, setIsProfileComplete, setRegistrationModalOpen, setIsRegistrationCompleted, isRegistrationCompleted}) => {
 
@@ -280,7 +245,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
             if (savedBasketData) {
                 const { items, timestamp } = JSON.parse(savedBasketData);
                 const currentTime = new Date().getTime();
-                if (currentTime - timestamp < 15 * 60 * 1000) { // 15 minutes
+                if (currentTime - timestamp < 30 * 60 * 1000) { // 60 minutes
                     const rehydratedBasket = items.map((item: { startDate: string | number | Date; endDate: string | number | Date; }) => ({
                         ...item,
                         startDate: new Date(item.startDate),
@@ -415,7 +380,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
         };
     
         checkUserProfile();
-    }, [user, loginMethod]);
+    }, [user, loginMethod, setIsProfileComplete, setRegistrationModalOpen]);
     
 
     const handleCheckoutClick = () => {

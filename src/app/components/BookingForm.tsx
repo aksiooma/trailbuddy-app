@@ -3,11 +3,8 @@ import React, { useState } from 'react';
 import { User, signInWithEmailAndPassword, getAuth } from "firebase/auth";
 import { setAndStoreLoginMethod } from './utils/utils';
 import { motion } from 'framer-motion';
+import { BookingFormProps } from './Types/types'
 
-interface BookingFormProps {
-    setLoginMethod: React.Dispatch<React.SetStateAction<string>>;
-   
-}
 
 const BookingForm: React.FC<BookingFormProps> = ({ setLoginMethod   }) => {
     const [user, setUser] = useState<User | null>(null);
@@ -25,7 +22,6 @@ const BookingForm: React.FC<BookingFormProps> = ({ setLoginMethod   }) => {
             setAndStoreLoginMethod("Email", setLoginMethod);
         } catch (error) {
             console.error(error);
-            // Set a user-friendly error message
             setError('Login failed. Please check your email and password.');
         }
     };

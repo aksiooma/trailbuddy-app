@@ -1,43 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { User, getAuth } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { doc, updateDoc } from "firebase/firestore"
-import { Firestore } from 'firebase/firestore';
-import { ReservationItem } from './Types/types';
+import { BasketComponentProps } from './Types/types';
 import { isValidEmail, isValidPhone, isValidName, isFormCompleteAndValid } from './utils/validationUtils';
 import { fetchUserData } from './utils/fetchUserData'
 
-//The type of a basket item
-type BasketItem = {
-    startDate: Date;
-    endDate?: Date | null;
-    name: string;
-    quantity: number;
-    price: number;
-    size: string;
-    reservationId?: string;
-};
-
-
-type Basket = BasketItem[];
-type RemoveFromBasketFunction = (index: number) => void;
-
-type BasketComponentProps = {
-    basket: Basket;
-    removeFromBasket: RemoveFromBasketFunction;
-    onCheckoutClick: () => void;
-    user: User | null;
-    IsExtendedViewVisible: boolean;
-    onHandleCheckout: () => void;
-    showConfirmation: boolean;
-    showDatepicker: boolean;
-    loginMethod: string;
-    setBasket: React.Dispatch<React.SetStateAction<ReservationItem[]>>;
-    db: Firestore;
-    setIsRegistrationCompleted: (isComplete: boolean) => void;
-    isRegistrationCompleted: boolean;
-
-};
 
 
 //Calculate day difference
@@ -104,7 +72,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
 
         // Reset the flag
         setIsRegistrationCompleted(false);
-    }, [loginMethod, isRegistrationCompleted]);
+    }, [loginMethod, isRegistrationCompleted, setIsRegistrationCompleted]);
 
     const renderCheckoutButton = () => {
         if (basket.length > 0 && !IsExtendedViewVisible) {
@@ -139,7 +107,6 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
             alert("Please enter a valid phone number.");
             return;
         }
-
 
 
         try {
