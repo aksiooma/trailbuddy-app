@@ -75,7 +75,7 @@ const MapboxComponent: React.FC<TrackProps> = ({ selectedTrack, onSelectTrack, t
                 console.error("Error loading GPX data: ", error);
             }
         });
-    }, [tracks, onMapLoad]);
+    }, [tracks, onMapLoad, onSelectTrack]);
 
 
     useEffect(() => {
@@ -91,7 +91,7 @@ const MapboxComponent: React.FC<TrackProps> = ({ selectedTrack, onSelectTrack, t
                 map.setPaintProperty(layerId, 'line-color', '#000');
             }
         });
-    }, [selectedTrack]);
+    }, [tracks, selectedTrack]);
 
 
     return <AnimatePresence><motion.div

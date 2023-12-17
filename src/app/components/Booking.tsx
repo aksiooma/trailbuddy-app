@@ -380,7 +380,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ selectedBike, user, onLogout,
         };
     
         checkUserProfile();
-    }, [user, loginMethod, setIsProfileComplete]);
+    }, [user, loginMethod, setIsProfileComplete, setRegistrationModalOpen]);
     
 
     const handleCheckoutClick = () => {
