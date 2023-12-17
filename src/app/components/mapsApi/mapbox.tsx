@@ -1,13 +1,12 @@
 //mapbox.tsx
-import React, { useEffect, useState, useRef } from 'react';
-import fetchGPXData from '../utils/fetchGPXData'
+import React, { useEffect, useRef } from 'react';
+import fetchGPXData from '../utils/fetchGPXData';
 import mapboxgl from 'mapbox-gl';
-import "mapbox-gl/dist/mapbox-gl.css"
+import "mapbox-gl/dist/mapbox-gl.css";
 import { motion, AnimatePresence } from 'framer-motion';
 import { collection, getDocs } from "firebase/firestore";
 import { db } from '../FirestoreInit';
-import { TrackProps } from '../Types/types'
-
+import { TrackProps } from '../Types/types';
 
 if (typeof process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN === 'undefined') {
     throw new Error('Mapbox access token is not defined');
@@ -15,7 +14,7 @@ if (typeof process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN === 'undefined') {
 
 mapboxgl.accessToken = process.env.NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN as string;
 
-const mapboxComponent: React.FC<TrackProps> = ({ selectedTrack, onSelectTrack, tracks, onMapLoad }) => {
+const MapboxComponent: React.FC<TrackProps> = ({ selectedTrack, onSelectTrack, tracks, onMapLoad }) => {
     const mapRef = useRef<mapboxgl.Map | null>(null);
     const allConvertedDataRef = useRef<any[]>([]);
 
@@ -106,4 +105,4 @@ const mapboxComponent: React.FC<TrackProps> = ({ selectedTrack, onSelectTrack, t
 
 };
 
-export default mapboxComponent;
+export default MapboxComponent;
