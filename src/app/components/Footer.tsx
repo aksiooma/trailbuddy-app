@@ -6,17 +6,12 @@ const Footer = () => {
         <div className="mb-6 md:mb-0">
           <p className="text-lg font-bold">TrailBuddy</p>
           <p className="text-sm">&copy; {new Date().getFullYear()} All Rights Reserved</p>
+          
         </div>
 
-        <div className="mb-6 md:mb-0">
-          <p className="font-semibold mb-2">Follow Us</p>
-          {/* social media links */}
-          <div className="flex space-x-4">
-            
-            <a href="#" className="hover:text-pink-500">Instagram</a>
-           
-          </div>
-        </div>
+        <p className="text-xs mt-2">
+            <span className="font-bold text-rose-700">Disclaimer:</span> This website is a demo created for portfolio purposes only. <br></br> The services, products, and information presented here are entirely fictional and<br></br> not intended for real-world use. <span className="font-bold text-rose-700"><br></br><br></br>Images</span> on this site are used for educational purposes under fair use.<br></br>This site is not commercial and is intended as a showcase of web development skills.
+          </p>
 
         <div>
           <p className="font-semibold mb-2">Quick Links</p>

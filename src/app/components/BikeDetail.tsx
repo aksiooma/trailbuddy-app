@@ -27,6 +27,9 @@ const BikeDetail: React.FC<BikeDetailProps & { onClose: () => void }> = ({ bike,
             </motion.div>
 
             {bike.image && <Image className='img rounded'  {...commonImageProps} src={bike.image} alt={bike.name} />}
+            <span className='text-xs'>{bike.name}, {bike.alt}</span>
+            <p className='text-xs mt-2 mb-2'><span className="font-bold text-rose-700">Disclaimer:</span> Images used in the bike-selection component are for educational purposes only. This project is not for commercial use.
+            </p>
             <div className='p-2 mt-2 mb-2 border-1 border-teal-100/50 rounded'>{bike.price} € / day</div>
             <BikeDetailAccordion bike={bike} Small={0} Medium={0} Large={0} selectedSize={''} />
         </motion.div>

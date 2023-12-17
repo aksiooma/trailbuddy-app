@@ -51,6 +51,7 @@ export interface Bike {
   Medium: number;
   Small: number;
   sizing: string;
+  alt: string;
 }
 
 export interface BikeSelectorProps {

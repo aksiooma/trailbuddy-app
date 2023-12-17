@@ -56,7 +56,7 @@ const MainSection: React.FC<MainSectionProps> = ({ onBookNowClick }) => {
         </div>
 
       </div>
-      <p className="text-2xl sm:text-1xl md:text-3xl lg:text-3xl xl:text-3xl mb-4 text-white text-center px-5 mt-5 mb-10">Your reliable MTB-rental companion and trail advisor</p>
+      <p className="text-2xl sm:text-1xl md:text-3xl lg:text-3xl xl:text-3xl mb-4 text-white text-center px-5 mt-5 mb-10">Your   <span className='font-bold text-rose-800'>fictional</span> MTB-rental companion and trail advisor</p>
     </div>
   );
 };

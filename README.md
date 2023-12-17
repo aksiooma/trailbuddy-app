@@ -1,31 +1,31 @@
-# Trailbuddy - a fictional MTB-Bike Rental Booking and Trailmaps Application
+# Trailbuddy - a fictional MTB-Bike Rental and Trail Maps
 
-Trailbuddy, a fictional MTB-Bike Rental Booking and TrailmapsApplication, is a sophisticated front-end project that facilitates bike rental reservations. It integrates a sleek user interface with real-time database interactions, ensuring a seamless and responsive booking experience.
+Trailbuddy is a fictional MTB-Bike rental and trail map application, offering an engaging and intuitive user experience for rentals and trail exploration. It is a sophisticated front-end project with real-time database interactions, ensuring a seamless and responsive booking experience.
 
-## Technologies
+## Key Technologies
 
-   - Next.js: A React framework for building user interfaces with server-side rendering and static site generation.
-   - TailwindCSS: A utility-first CSS framework for rapidly building custom designs.
-   - TypeScript: A strongly typed programming language that builds on JavaScript.
-   - Firebase: A comprehensive app development platform that provides backend services like real-time databases, authentication, and cloud functions.
-   - Vercel: A cloud platform for static sites and Serverless Functions that fits perfectly with your workflow.
-   - CI/CD Pipeline: Automated Continuous Integration and Continuous Deployment to streamline development and deployment processes.
-   - Jest: A JavaScript Testing Framework with a focus on simplicity.
+   - **Next.js:** A React framework for building user interfaces with server-side rendering and static site generation.
+   - **TailwindCSS:** A utility-first CSS framework for rapidly building custom designs.
+   - **TypeScript:** A strongly typed programming language that builds on JavaScript.
+   - **Firebase:** A comprehensive app development platform providing backend services like real-time databases, authentication, and cloud storage.
+   - **Vercel:** A cloud platform for static sites and Serverless Functions.
+   - **CI/CD Pipeline:** Automated Continuous Integration and Continuous Deployment.
+   - **Jest:** A JavaScript Testing Framework with a focus on simplicity.
+   - **Mapbox API:** Used for rendering interactive map, displaying bike trails, and enhancing user navigation.
 
-## Features
+## Core Features
 
-   - Bike Selection: Choose from a variety of bikes.
-   - Size Selection: Select the desired size for the chosen bike (Small, Medium, Large).
-   - User Authentication: Secure login using Google, email/password via Firebase Authentication - or anonymous login.
-   - Real-time Availability Check: Live updates of bike availability using Firestore. Local storage for session handling.
-   - Basket Functionality: Review and manage bike reservations before finalizing.
-   - Responsive Design: Fully responsive layout for an optimal viewing experience across different devices.
-   - Automated Testing: Unit tests with Jest to ensure application reliability and stability.
-   - Scheduled Cloud Function: Automatically removes 'pending' reservations after a set period to maintain database integrity.
+   - **Bike Selection:** Choose from a variety of bikes.
+   - **Size Selection:** Select the desired bike size.
+   - **User Authentication:**  Secure login with Google, email/password, or anonymous access.
+   - **Real-time Updates:** Live updates on bike availability.
+   - **Basket Functionality:**  Manage bike reservations before finalizing.
+   - **Responsive Design:** Optimal viewing across devices.
+   - **Automated Testing:** Ensuring reliability with Jest.
+   - **Cloud Functionality:** Auto-removal of pending reservations. (Currently not implemented due to plan limitations, may be added for future testing)
+   
 
-## Getting Started
-
-To get a local copy up and running follow these simple steps:
+## Quick Start
 
 1.  Clone the repository
 ```bash
@@ -37,8 +37,7 @@ git clone https://github.com/aksiooma/trailbuddy-app
 npm install
 ```
 
-3. Update enviroment variables for local development by creating .env file 
-
+3. Set up .env file for environment variables.
 
 4. Run the development server
 
@@ -55,16 +54,17 @@ Open http://localhost:3000 with your browser to see the result.
 
 ## Deployment
 
-This application is deployed on Vercel with a integrated CI/CD pipeline for efficient testing and deployment.
+Deployed on Vercel with integrated CI/CD for testing and deployment.  [Visit the live site.](https://trailbuddy-app.vercel.app/)
 
 ## Contributing
 
-Contributions, issues, and feature requests are welcome. Feel free to check issues page if you want to contribute.
+Contributions are welcome! For any contributions, issues, or feature requests, please visit the issues page.
 
 ## License
 
 Distributed under the MIT License. See LICENSE for more information.
 Contact
 
-Teijo Virta - teijo.virta@gmail.com
-Project Link: https://github.com/aksiooma/trailbuddy-app
+##### Teijo Virta - teijo.virta@gmail.com
+##### Live site: https://trailbuddy-app.vercel.app/
+##### Visit the project site: https://github.com/aksiooma/trailbuddy-app

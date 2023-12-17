@@ -17,7 +17,7 @@ const image =
         <div className="about-section flex flex-col items-center justify-center p-6 border border-gray-200 rounded-lg relative w-full max-w-4xl mx-auto">
           <div className='mb-5'>
             <p className='about-text'>
-              This is a fictional mtb-booking website. Our mission is straightforward: to provide easy, hassle-free mountain bike rentals that get you onto the trails quickly.<br /><br />
+              <span className='font-bold text-rose-700'>This is a fictional mtb-booking website.</span> Our mission is straightforward: to provide easy, hassle-free mountain bike rentals that get you onto the trails quickly.<br /><br />
               We created this platform with a clear goal &ndash; making your mountain biking adventures as accessible and enjoyable as possible. We know the excitement of hitting the trails, and we believe that renting a quality mountain bike should be simple and straightforward.<br /><br />
               Our website offers a handpicked selection of top-notch mountain bikes suitable for all skill levels. The process is easy: choose your bike, book it, and you&apos;re ready to ride. No fuss, no complications.<br /><br />
               We&apos;re not just a rental service; we&apos;re a community of outdoor enthusiasts and mountain biking fans. We&apos;re here to share tips, trail recommendations, and the latest in biking gear.<br /><br />

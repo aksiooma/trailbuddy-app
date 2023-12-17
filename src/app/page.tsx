@@ -9,38 +9,7 @@ import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { AuthProvider } from './components/AuthContext';
 
-declare global {
-  interface Window { 
-    _mtm: any[];
-  }
-}
-
 export default function Page() {
-
-  useEffect(() => {
-    // Initialize _mtm on window object
-    window._mtm = window._mtm || [];
-    window._mtm.push({ 'mtm.startTime': (new Date().getTime()), 'event': 'mtm.Start' });
-  
-    const d = document;
-    const g = d.createElement('script');
-    const s = d.getElementsByTagName('script')[0];
-  
-    g.async = true;
-  
-    // Ensuring the environment variable is defined
-    const matomoURL = process.env.NEXT_PUBLIC_MATOMO_TAG_MANAGER_CONTAINER_URL;
-    if (!matomoURL) {
-      console.error('Matomo Tag Manager container URL is not defined');
-      return;
-    }
-    g.src = matomoURL;
-  
-    // Checking if parentNode exists before inserting the script
-    if (s.parentNode) {
-      s.parentNode.insertBefore(g, s);
-    }
-  }, []);
 
   const bookingSectionRef = useRef<HTMLDivElement>(null);
   const trailMapsSectionRef = useRef<HTMLDivElement>(null);
