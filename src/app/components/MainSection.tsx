@@ -2,11 +2,9 @@
 
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Pagination } from 'swiper/modules';
 import Image from 'next/image';
 import 'swiper/css';
-import 'swiper/css/navigation';
-import {commonImageProps} from './Types/types'
+
 import { MainSectionProps } from './Types/types';
 
 // hero images array
@@ -29,17 +27,21 @@ const MainSection: React.FC<MainSectionProps> = ({ onBookNowClick }) => {
     <div className="main-section mb-10">
       <div className="relative container mx-auto max-w-custom-large h-auto">
         <Swiper
-          modules={[Navigation, Pagination]}
           spaceBetween={50}
           slidesPerView={1}
         >
           {images.map((image, index) => (
             <SwiperSlide key={index}>
               <Image
-                {...commonImageProps}
                 src={image.src}
                 alt={image.alt}
-              />
+                width={1500} // Adjust these values based on your design
+                height={500}
+                quality={75}
+                placeholder="blur"
+                blurDataURL={image.src} // Ensure this is a valid data URL
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+
             </SwiperSlide>
           ))}
         </Swiper>
@@ -51,12 +53,12 @@ const MainSection: React.FC<MainSectionProps> = ({ onBookNowClick }) => {
             onClick={onBookNowClick}
             className="[text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)] bg-teal-500/50 border-2 border-white-500/50 hover:bg-blue-900/50 text-white font-bold rounded-full transition-colors duration-200 py-2 px-4"
           >
-            Book Now 
+            Book Now
           </button>
         </div>
 
       </div>
-      <p className="text-2xl sm:text-1xl md:text-3xl lg:text-3xl xl:text-3xl mb-4 text-white text-center px-5 mt-5 mb-10">Your   <span className='font-bold text-rose-800'>fictional</span> MTB-rental companion and trail advisor</p>
+      <p className="text-2xl sm:text-1xl md:text-3xl lg:text-3xl xl:text-3xl mb-4 text-white text-center px-5 mt-5 mb-10">Your <span className='font-bold text-rose-800'>fictional</span> MTB-rental companion and trail advisor</p>
     </div>
   );
 };

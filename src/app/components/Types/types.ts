@@ -188,7 +188,7 @@ export type BasketComponentProps = {
 export const commonImageProps = {
   width: 1500,
   height: 500,
-  quality: 100,
+  quality: 75,
 };
 
 
