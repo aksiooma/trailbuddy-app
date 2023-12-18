@@ -1,47 +1,56 @@
-// Import Swiper React components
-
+//MainSection.tsx
 import React from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
+
 import Image from 'next/image';
 import 'swiper/css';
 
-import { MainSectionProps } from './Types/types';
+import { MainSectionProps, heroImageProps } from './Types/types';
 
-// hero images array
+
 const images = [
   {
     src: '/assets/mtb.webp',
     alt: 'Trail Image 1',
+    blur: '/assets/mtb-2.webp'
   },
+  
   {
     src: '/assets/mtb6.webp',
     alt: 'Trail Image 2',
+    blur: '/assets/mtb6-3.webp'    
   },
 
 ];
 
+
+const swiperParams = {
+  lazy: {
+      loadPrevNext: true, 
+  },
+  preloadImages: false, 
+  watchSlidesVisibility: true, 
+};
 
 const MainSection: React.FC<MainSectionProps> = ({ onBookNowClick }) => {
 
   return (
     <div className="main-section mb-10">
       <div className="relative container mx-auto max-w-custom-large h-auto">
-        <Swiper
+        <Swiper {...swiperParams}
           spaceBetween={50}
           slidesPerView={1}
         >
           {images.map((image, index) => (
             <SwiperSlide key={index}>
               <Image
+              {...heroImageProps}
                 src={image.src}
                 alt={image.alt}
-                width={1500} // Adjust these values based on your design
-                height={500}
-                quality={75}
+                priority={true}
                 placeholder="blur"
-                blurDataURL={image.src} // Ensure this is a valid data URL
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
-
+                blurDataURL={image.blur}
+                />
             </SwiperSlide>
           ))}
         </Swiper>

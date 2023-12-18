@@ -1,4 +1,4 @@
-// components/BookingSection.tsx
+//BookingSection.tsx
 import BikeSelector from './BikeSelector';
 import BikeDetail from './BikeDetail';
 import React, { forwardRef, useState, useEffect } from 'react';

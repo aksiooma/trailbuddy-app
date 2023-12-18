@@ -11,7 +11,7 @@ const BookingForm: React.FC<BookingFormProps> = ({ setLoginMethod   }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const auth = getAuth();
-    const [error, setError] = useState(''); // State to store the error message
+    const [error, setError] = useState('');
 
 
     const handleEmailSignIn = async (e: React.FormEvent<HTMLFormElement>) => {

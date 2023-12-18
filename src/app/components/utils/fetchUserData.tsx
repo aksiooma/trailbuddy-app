@@ -1,6 +1,8 @@
+// utils/fetchUserData.js
+
 import { doc, getDoc, getFirestore } from "firebase/firestore";
 
-// utils/fetchUserData.js
+
 export const fetchUserData = async (userId: string) => {
     const firestore = getFirestore();
     const userDoc = doc(firestore, "USERS", userId);

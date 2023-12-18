@@ -3,8 +3,6 @@ import React, { forwardRef } from 'react';
 import Image from 'next/image';
 import { commonImageProps } from './Types/types';
 
-
-// Images array
 const image =
 {
   src: '/assets/team.webp',
@@ -26,8 +24,7 @@ const AboutSection = forwardRef<HTMLDivElement>((props, ref) => {
           </p>
         </div>
         <Image className='rounded' src={image.src} alt={image.alt} {...commonImageProps}
-          placeholder="blur" 
-          blurDataURL={image.src} quality={20}  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" />
+          priority={false} />
       </div>
     </div>
   );

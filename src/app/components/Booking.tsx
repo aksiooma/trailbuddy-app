@@ -6,7 +6,7 @@ import { db } from "./FirestoreInit"
 import { motion } from 'framer-motion';
 import { AvailabilityData } from './Types/types';
 import BasketComponent from './BasketComponent';
-import { useFetchBikes } from './hooks/useFetchBikes'; // Adjust the import path as needed
+import { useFetchBikes } from './hooks/useFetchBikes';
 import RegistrationForm from './RegisterationForm';
 import Modal from './RegisterationModal';
 
