@@ -1,4 +1,4 @@
-//mapbox.tsx
+//mapsApi/mapbox.tsx
 import React, { useEffect, useRef } from 'react';
 import fetchGPXData from '../utils/fetchGPXData';
 import mapboxgl from 'mapbox-gl';

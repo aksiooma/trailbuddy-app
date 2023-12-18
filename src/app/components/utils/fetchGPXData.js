@@ -1,5 +1,5 @@
 
-//fetchGPXData.js
+// utils/fetchGPXData.js
 import { getStorage, ref, getDownloadURL } from "firebase/storage";
 import tj from '@mapbox/togeojson';
 

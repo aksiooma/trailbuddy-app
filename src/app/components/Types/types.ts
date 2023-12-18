@@ -10,7 +10,7 @@ export interface RegistrationUserData {
 export interface RegistrationFormProps {
   registrationUserData: RegistrationUserData;
   setIsProfileComplete: (isComplete: boolean) => void;
-  loginMethod: string; // Add this prop to accept the login method
+  loginMethod: string;
   setIsRegistrationCompleted: (isComplete: boolean) => void;
 }
 
@@ -28,7 +28,7 @@ export interface ModalProps {
 
 // The prop types for MainSection
 export type MainSectionProps = {
-  onBookNowClick: () => void; // This function will be called when the button is clicked
+  onBookNowClick: () => void;
 };
 
 export interface NavbarProps {
@@ -138,8 +138,6 @@ export interface Reservation {
 }
 
 //DatePicker:
-
-
 export interface BookingDatePickerProps {
   startDate: Date | null;
   endDate: Date | null;
@@ -186,9 +184,16 @@ export type BasketComponentProps = {
 
 //Images
 export const commonImageProps = {
+  width: 750,
+  height: 450,
+  quality: 50,
+
+};
+
+export const heroImageProps = {
   width: 1500,
   height: 500,
-  quality: 100,
+  quality: 65,
 };
 
 

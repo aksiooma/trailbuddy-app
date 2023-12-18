@@ -9,6 +9,7 @@ import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { AuthProvider } from './components/AuthContext';
 
+
 export default function Page() {
 
   const bookingSectionRef = useRef<HTMLDivElement>(null);
@@ -56,6 +57,7 @@ export default function Page() {
       <TrailMapsSection ref={trailMapsSectionRef} />
       <AboutSection ref={aboutUsSectionRef} />
       <Footer />
+     
     </AuthProvider>
 
   );
