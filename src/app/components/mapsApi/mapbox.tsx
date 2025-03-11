@@ -1,5 +1,5 @@
 //mapsApi/mapbox.tsx
-import React, { useEffect, useRef, forwardRef, useImperativeHandle, useState } from 'react';
+import React, { useEffect, useRef, forwardRef, useImperativeHandle, useState, useCallback } from 'react';
 import fetchGPXData from '../utils/fetchGPXData';
 import mapboxgl from 'mapbox-gl';
 import "mapbox-gl/dist/mapbox-gl.css";
@@ -74,7 +74,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                 mapRef.current = null;
             }
         };
-    }, [tracks.length, enhancedStyle]);
+    }, [tracks.length]); // Riippuu vain tracks.length, ei enhancedStyle
 
     // Päivitä kartan tyyli jos se muuttuu
     useEffect(() => {
@@ -83,8 +83,18 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                 ? 'mapbox://styles/mapbox/outdoors-v12'
                 : 'mapbox://styles/teijov/clpqu9lrf013l01pagio68b6v';
                 
-            if (mapRef.current.getStyle().name !== styleId) {
+            // Tarkista, että getStyle() palauttaa objektin ja sillä on name-ominaisuus
+            const currentStyle = mapRef.current.getStyle();
+            if (currentStyle && currentStyle.name !== styleId) {
                 mapRef.current.setStyle(styleId);
+                
+                // Tärkeää: Lisää tapahtumankäsittelijä tyylin latautumiselle
+                mapRef.current.once('style.load', () => {
+                    // Lataa reitit uudelleen tyylin vaihtamisen jälkeen
+                    if (mapRef.current) {
+                        loadTracks(mapRef.current);
+                    }
+                });
             }
         }
     }, [enhancedStyle, mapInitialized]);
@@ -94,7 +104,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
         const map = mapRef.current;
         if (!map || !mapInitialized || tracks.length === 0) return;
 
-        // Päivitä reittien värit
+        // Päivitä reittien värit 
         tracks.forEach((track) => {
             const layerId = `route-layer-${track.name}`;
             if (map.getLayer(layerId)) {
@@ -105,8 +115,8 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
         });
     }, [selectedTrack, mapInitialized, tracks]);
 
-    // Muokataan loadTracks-funktiota
-    const loadTracks = async (map: mapboxgl.Map) => {
+    // Muokataan loadTracks-funktiota useCallback-hookilla
+    const loadTracks = useCallback(async (map: mapboxgl.Map) => {
         try {
             const fetchGPXFilePaths = async () => {
                 const querySnapshot = await getDocs(collection(db, "gpx"));
@@ -118,68 +128,89 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                 const sourceId = `route-${track.name}`;
                 const layerId = `route-layer-${track.name}`;
                 const shadowLayerId = `${layerId}-shadow`;
+                const clickAreaId = `click-area-${track.name}`;
                 
                 if (map.getLayer(layerId)) map.removeLayer(layerId);
                 if (map.getLayer(shadowLayerId)) map.removeLayer(shadowLayerId);
+                if (map.getLayer(clickAreaId)) map.removeLayer(clickAreaId);
                 if (map.getSource(sourceId)) map.removeSource(sourceId);
             });
 
+            console.log("Fetching GPX file paths...");
             const gpxFilePaths = await fetchGPXFilePaths();
+            console.log("GPX file paths:", gpxFilePaths);
+            
+            console.log("Fetching GPX data...");
             const allConvertedData = await fetchGPXData(gpxFilePaths);
+            console.log("GPX data fetched:", allConvertedData.length);
             allConvertedDataRef.current = allConvertedData;
 
             // Prosessoi reitit
             tracks.forEach((track, index) => {
-                if (index >= allConvertedData.length) return;
+                if (index >= allConvertedData.length) {
+                    console.warn(`No data for track: ${track.name}`);
+                    return;
+                }
                 
                 const convertedData = allConvertedData[index];
+                if (!convertedData || !convertedData.features || convertedData.features.length === 0) {
+                    console.warn(`Invalid data for track: ${track.name}`);
+                    return;
+                }
+                
                 const sourceId = `route-${track.name}`;
                 const layerId = `route-layer-${track.name}`;
                 const shadowLayerId = `${layerId}-shadow`;
                 const clickAreaId = `click-area-${track.name}`;
 
                 // Lisää reitti
-                map.addSource(sourceId, { type: 'geojson', data: convertedData });
-                
-                // Lisää varjo
-                map.addLayer({
-                    id: shadowLayerId,
-                    type: 'line',
-                    source: sourceId,
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: {
-                        'line-color': '#000',
-                        'line-width': 7,
-                        'line-opacity': 0.4,
-                        'line-blur': 3
-                    }
-                });
-                
-                // Lisää näkyvä reitti
-                map.addLayer({
-                    id: layerId,
-                    type: 'line',
-                    source: sourceId,
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: {
-                        'line-color': selectedTrack === track.name ? '#ef4444' : '#8b5cf6',
-                        'line-width': selectedTrack === track.name ? 5 : 3,
-                        'line-opacity': 0.8
-                    }
-                });
-                
-                // Lisää laajempi klikkausalue (näkymätön)
-                map.addLayer({
-                    id: clickAreaId,
-                    type: 'line',
-                    source: sourceId,
-                    layout: { 'line-join': 'round', 'line-cap': 'round' },
-                    paint: {
-                        'line-color': 'transparent',
-                        'line-width': 15, // Huomattavasti leveämpi klikkausalue
-                        'line-opacity': 0
-                    }
-                });
+                try {
+                    map.addSource(sourceId, { type: 'geojson', data: convertedData });
+                    
+                    // Lisää varjo
+                    map.addLayer({
+                        id: shadowLayerId,
+                        type: 'line',
+                        source: sourceId,
+                        layout: { 'line-join': 'round', 'line-cap': 'round' },
+                        paint: {
+                            'line-color': '#000',
+                            'line-width': 7,
+                            'line-opacity': 0.4,
+                            'line-blur': 3
+                        }
+                    });
+                    
+                    // Lisää näkyvä reitti
+                    map.addLayer({
+                        id: layerId,
+                        type: 'line',
+                        source: sourceId,
+                        layout: { 'line-join': 'round', 'line-cap': 'round' },
+                        paint: {
+                            'line-color': selectedTrack === track.name ? '#ef4444' : '#8b5cf6',
+                            'line-width': selectedTrack === track.name ? 5 : 3,
+                            'line-opacity': 0.8
+                        }
+                    });
+                    
+                    // Lisää laajempi klikkausalue (näkymätön)
+                    map.addLayer({
+                        id: clickAreaId,
+                        type: 'line',
+                        source: sourceId,
+                        layout: { 'line-join': 'round', 'line-cap': 'round' },
+                        paint: {
+                            'line-color': 'transparent',
+                            'line-width': 15, // Huomattavasti leveämpi klikkausalue
+                            'line-opacity': 0
+                        }
+                    });
+                    
+                    console.log(`Added track: ${track.name}`);
+                } catch (error) {
+                    console.error(`Error adding track ${track.name}:`, error);
+                }
                 
                 // Lisää hover-efekti klikkausalueelle (vain kursori)
                 map.on('mouseenter', clickAreaId, () => {
@@ -250,11 +281,12 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
         } catch (error) {
             console.error("Error loading tracks:", error);
         }
-    };
+    }, [tracks, selectedTrack, onSelectTrack, onMapLoad]);
 
     // Lisää tämä useEffect kartan alustuksen jälkeen
     useEffect(() => {
         if (mapInitialized && mapRef.current && tracks.length > 0) {
+            console.log("Initializing tracks...");
             loadTracks(mapRef.current);
         }
     }, [mapInitialized, tracks.length, loadTracks]);
