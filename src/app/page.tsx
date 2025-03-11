@@ -8,6 +8,7 @@ import TrailMapsSection from './components/TrailMapsSection';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
 import { AuthProvider } from './context/AuthContext';
+import { LanguageProvider } from './context/LanguageContext';
 
 
 export default function Page() {
@@ -46,18 +47,19 @@ export default function Page() {
   return (
 
     <AuthProvider>
-      {showNavbar && <Navbar
-        onBookingClick={() => scrollToSection(bookingSectionRef)}
-        onTrailMapsClick={() => scrollToSection(trailMapsSectionRef)}
-        onAboutUsClick={() => scrollToSection(aboutUsSectionRef)}
-      />}
+      <LanguageProvider>
+        {showNavbar && <Navbar
+          onBookingClick={() => scrollToSection(bookingSectionRef)}
+          onTrailMapsClick={() => scrollToSection(trailMapsSectionRef)}
+          onAboutUsClick={() => scrollToSection(aboutUsSectionRef)}
+        />}
 
-      <MainSection onBookNowClick={() => scrollToSection(bookingSectionRef)} />
-      <BookingSection ref={bookingSectionRef} />
-      <TrailMapsSection ref={trailMapsSectionRef} />
-      <AboutSection ref={aboutUsSectionRef} />
-      <Footer />
-     
+        <MainSection onBookNowClick={() => scrollToSection(bookingSectionRef)} />
+        <BookingSection ref={bookingSectionRef} />
+        <TrailMapsSection ref={trailMapsSectionRef} />
+        <AboutSection ref={aboutUsSectionRef} />
+        <Footer />
+      </LanguageProvider>
     </AuthProvider>
 
   );
