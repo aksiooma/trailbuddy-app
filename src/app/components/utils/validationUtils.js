@@ -14,7 +14,7 @@ export const isValidPhone = (phone) => {
 
 // Name validation
 export const isValidName = (name) => {
-    return /^[a-zA-Z ]+$/.test(name);
+    return /^[a-zA-ZäöåÄÖÅ ]+$/.test(name);
 };
 
 // Password validation

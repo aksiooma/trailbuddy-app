@@ -7,7 +7,7 @@ import AboutSection from './components/AboutSection';
 import TrailMapsSection from './components/TrailMapsSection';
 import Footer from './components/Footer';
 import Navbar from './components/Navbar';
-import { AuthProvider } from './components/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 
 
 export default function Page() {

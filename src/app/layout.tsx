@@ -3,6 +3,8 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import {Providers} from "./providers";
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import { LanguageProvider } from './context/LanguageContext'
+
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -17,9 +19,14 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className='dark'> 
-      <body className={inter.className}><Providers>{children}</Providers>
-      <SpeedInsights />
+    <html lang="en" className='dark' > 
+      <body className={inter.className}>
+        <LanguageProvider>
+          <Providers>
+            {children}
+          </Providers>
+        </LanguageProvider>
+        <SpeedInsights />
       </body>
     </html>
   )

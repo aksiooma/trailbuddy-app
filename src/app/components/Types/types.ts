@@ -12,6 +12,8 @@ export interface RegistrationFormProps {
   setIsProfileComplete: (isComplete: boolean) => void;
   loginMethod: string;
   setIsRegistrationCompleted: (isComplete: boolean) => void;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
 export interface FirebaseError {
@@ -59,6 +61,14 @@ export interface BikeSelectorProps {
   selectedBike: Bike | null;
   onSizeSelect: (size: BikeSizeKey) => void;
   selectedSize: BikeSizeKey | null; 
+  accessories: { id: string; name: string; price: number }[];
+  selectedAccessories: string[];
+  setSelectedAccessories: React.Dispatch<React.SetStateAction<string[]>>;
+  handleAccessoryToggle: (accessoryId: string) => void;
+  getAvailableStockForSize: (size: BikeSizeKey) => number;
+  startDate: Date | null;
+  datePickerRef: React.RefObject<HTMLDivElement>;
+  userLoggedIn: boolean;
 }
 
 
@@ -73,7 +83,22 @@ export interface BikeDetailProps {
   Large: number;
 }
 
+export interface Track {
+  name: string;
+  description: string;
+  path: string;
+  bounds?: [[number, number], [number, number]];
+  geoJson?: any;
+} 
 
+export interface TrackProps {
+  selectedTrack: string | null;
+  onSelectTrack: (trackName: string) => void;
+  tracks: Track[];
+  onMapLoad: (loaded: boolean | ((prevState: boolean) => boolean)) => void;
+  enhancedStyle?: boolean;
+  isFullScreen?: boolean; // Lisätty tämä
+}
 
 //Booking Related
 export interface BookingFlowProps {
@@ -87,7 +112,19 @@ export interface BookingFlowProps {
   setRegistrationModalOpen: (isOpen: boolean) => void;
   setIsRegistrationCompleted: (isComplete: boolean) => void;
   isRegistrationCompleted: boolean;
-
+  selectedAccessories: string[];
+  setSelectedAccessories: React.Dispatch<React.SetStateAction<string[]>>;
+  accessories: { id: string; name: string; price: number }[];
+  handleAccessoryToggle: (accessoryId: string) => void;
+  startDate: Date | null;
+  endDate: Date | null;
+  selectedBikeAvailableStock: number;
+  dateAvailability: AvailabilityData;
+  setSelectedBikeAvailableStock: React.Dispatch<React.SetStateAction<number>>;
+  setDateAvailability: React.Dispatch<React.SetStateAction<AvailabilityData>>;
+  setStartDate: React.Dispatch<React.SetStateAction<Date | null>>;
+  setEndDate: React.Dispatch<React.SetStateAction<Date | null>>; 
+  datePickerRef: React.RefObject<HTMLDivElement>;
 }
 
 export interface BookingFormProps {
@@ -101,7 +138,21 @@ export interface BookingProps {
   selectedSize: string | null;
   setIsRegistrationCompleted: (isComplete: boolean) => void;
   isRegistrationCompleted: boolean;
- 
+  handleAccessoryToggle: (accessoryId: string) => void;
+  selectedAccessories: string[];
+  setSelectedAccessories: React.Dispatch<React.SetStateAction<string[]>>;
+  accessories: { id: string; name: string; price: number }[];
+  startDate: Date | null;
+  endDate: Date | null;
+  selectedBikeAvailableStock: number;
+  dateAvailability: AvailabilityData;
+  setSelectedBikeAvailableStock: React.Dispatch<React.SetStateAction<number>>;
+  setDateAvailability: React.Dispatch<React.SetStateAction<AvailabilityData>>;
+  setStartDate: React.Dispatch<React.SetStateAction<Date | null>>;
+  setEndDate: React.Dispatch<React.SetStateAction<Date | null>>;
+  datePickerRef: React.RefObject<HTMLDivElement>;
+  userLoggedIn: boolean;
+  setUserLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface AvailabilityData {
@@ -121,20 +172,24 @@ export interface ReservationItem {
   name: string;
   quantity: number;
   startDate: Date;
-  endDate: Date | null; 
-  reservationId ?: string;
+  endDate: Date | null;
+  reservationId: string;
   price: number;
-  size: BikeSizeKey;
+  size: string;
+  accessories?: string[];
 }
 
 export interface Reservation {
-  id: any;
+  id?: string;
   bikeId: string;
-  startDate: Timestamp;
-  endDate: Timestamp;
+  name: string;
   quantity: number;
+  startDate: any;
+  endDate: any;
+  status: string;
+  createdAt: any;
   size: BikeSizeKey;
-
+  accessories?: string[];
 }
 
 //DatePicker:
@@ -151,15 +206,11 @@ export interface BookingDatePickerProps {
 
 
 //Basket related
-export type BasketItem = {
-  startDate: Date;
-  endDate?: Date | null;
-  name: string;
-  quantity: number;
-  price: number;
-  size: string;
-  reservationId?: string;
-};
+export interface BasketItem extends ReservationItem {
+    // BasketItem perii kaikki ReservationItem:n kentät
+    totalPrice?: number; // Lisätään totalPrice-kenttä
+    days?: number; // Lisätään days-kenttä
+}
 
 export type Basket = BasketItem[];
 export type RemoveFromBasketFunction = (index: number) => void;
@@ -211,10 +262,10 @@ export interface DownloadUrls {
 
 export interface TrackProps {
   selectedTrack: string | null;
-  onSelectTrack: (track: string | null) => void;
+  onSelectTrack: (trackName: string) => void;
   tracks: Track[];
   onMapLoad: (loaded: boolean | ((prevState: boolean) => boolean)) => void;
- 
+  enhancedStyle?: boolean;
 }
 
 //Accordion

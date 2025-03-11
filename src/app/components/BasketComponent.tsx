@@ -6,8 +6,7 @@ import { doc, updateDoc } from "firebase/firestore"
 import { BasketComponentProps } from './Types/types';
 import { isValidEmail, isValidPhone, isValidName, isFormCompleteAndValid } from './utils/validationUtils';
 import { fetchUserData } from './utils/fetchUserData'
-
-
+import { useLanguage } from '../context/LanguageContext';
 
 //Calculate day difference
 function calculateDayDifference(startDate: { getTime: () => number; }, endDate: { getTime: () => number; }) {
@@ -18,11 +17,34 @@ function calculateDayDifference(startDate: { getTime: () => number; }, endDate: 
 
 //Price
 const calculateTotalPrice = (basket: any[]) => {
-    return basket.reduce((total: number, item: { startDate: string | number | Date; endDate: string | number | Date; price: number; quantity: number; }) => {
+    return basket.reduce((total: number, item: any) => {
+        // If item.totalPrice is defined, use it
+        if (item.totalPrice) {
+            return total + item.totalPrice;
+        }
+        
+        // Otherwise calculate the price based on days (older method)
         const startDate = new Date(item.startDate);
         const endDate = item.endDate ? new Date(item.endDate) : startDate;
         const dayDifference = calculateDayDifference(startDate, endDate);
-        return total + (item.price * (item.quantity + dayDifference));
+        
+        // Add accessory prices
+        let accessoriesPrice = 0;
+        if (item.accessories && item.accessories.length > 0) {
+            const accessoriesList = [
+                { id: 'helmet', price: 5 },
+                { id: 'lock', price: 3 },
+                { id: 'lights', price: 4 },
+                { id: 'bottle', price: 2 }
+            ];
+            
+            accessoriesPrice = item.accessories.reduce((acc: number, accessoryId: string) => {
+                const accessory = accessoriesList.find(a => a.id === accessoryId);
+                return acc + (accessory ? accessory.price : 0);
+            }, 0);
+        }
+        
+        return total + ((item.price * (dayDifference + 1)) + accessoriesPrice) * item.quantity;
     }, 0);
 };
 
@@ -41,6 +63,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
 
 
 }) => {
+    const { t } = useLanguage();
 
     useEffect(() => {
         const auth = getAuth();
@@ -78,12 +101,12 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
     const renderCheckoutButton = () => {
         if (basket.length > 0 && !IsExtendedViewVisible) {
             return (
-                <div className='flex flex-col justify-between items-center'>
+                <div className="mt-4">
                     <button
-                        className="[text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)] mt-4 bg-teal-600/70 border-2 border-slate-500/50 hover:bg-orange-900/50 hover:text-white text-shadow text-white font-bold rounded-full transition-colors duration-200 py-2 px-4 text-slate-900/50"
+                        className="w-full py-3 px-4 rounded-lg font-medium transition-all duration-300 bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white shadow-lg"
                         onClick={onHandleCheckout}
                     >
-                        Proceed to Checkout
+                        {t('basket.proceedToCheckout')}
                     </button>
                 </div>
             );
@@ -123,7 +146,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
             setBasket([]);
 
             // Clear the basket from local storage
-            const userBasketKey = `basket_${user?.uid}`; // Adjust this based on how you've set the key
+            const userBasketKey = `basket_${user?.uid}`;
             localStorage.removeItem(userBasketKey);
 
             // Show confirmation message
@@ -172,7 +195,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
         } else if ((name === "firstName" || name === "lastName") && value && !isValidName(value)) {
             setFormErrors(prevErrors => ({ ...prevErrors, [name]: "Name should only contain alphabets and spaces" }));
         } else {
-            setFormErrors(prevErrors => ({ ...prevErrors, [name]: "" })); // Clear error
+            setFormErrors(prevErrors => ({ ...prevErrors, [name]: "" })); 
         }
     };
 
@@ -189,60 +212,101 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
 
 
     const renderExtendedView = () => {
-
         if (IsExtendedViewVisible && basket.length > 0) {
-
             return (
-                <motion.div className="extended-view p-5 border-4 border-teal-700/50 rounded-lg mt-1 bg-white"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.5 }}>
-                    <h2 className='text-slate-900/70 text-lg'>   <span className="after:content-['*'] text-red-700 mr-1"></span>Contact Information:</h2>
-                    <form className='contact form round'>
-                        <input type="text"
-                            placeholder="First Name"
-                            className='rounded p-3 w-full mt-2 disabled:opacity-60  disabled:text-opacity-60'
-                            name="firstName"
-                            value={formData.firstName}
-                            onChange={handleInputChange}
-                            disabled={loginMethod !== "Anonymous"} />
-                        {formErrors.firstName && <div className="error-message text-danger-300 mt-1">{formErrors.firstName}</div>}
-                        <input type="text"
-                            placeholder="Last Name"
-                            className='rounded p-3 w-full mt-2 disabled:opacity-60  disabled:text-gray-500'
-                            name="lastName"
-                            value={formData.lastName}
-                            onChange={handleInputChange}
-                            disabled={loginMethod !== "Anonymous"} />
-                        {formErrors.lastName && <div className="error-message text-danger-300 mt-1">{formErrors.lastName}</div>}
-
-                        <input type="text"
-                            placeholder="Email"
-                            className='rounded p-3 w-full mt-1 disabled:opacity-60  disabled:text-gray-500'
-                            name="email"
-                            value={formData.email}
-                            onChange={handleInputChange}
-                            disabled={loginMethod !== "Anonymous"} />
-                        {formErrors.email && <div className="error-message text-danger-300 mt-1">{formErrors.email}</div>}
-                        <input type="tel"
-                            placeholder="Phone"
-                            className='rounded p-3 w-full mt-2 disabled:opacity-60  disabled:text-gray-500'
-                            name="phone"
-                            value={formData.phone}
-                            onChange={handleInputChange}
-                            disabled={loginMethod !== "Anonymous"} />
-                        {formErrors.phone && <div className="error-message text-danger-300 mt-1">{formErrors.phone}</div>}
-                        <div className="payment-methods p-2 border-2 border-slate-500/50 rounded-lg mt-2 bg-teal-700/50">
-                            <h2 className='mx-2 text-white-900/50 mb-2 text-lg [text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)]'>Payment Method:</h2>
-                            <div className="p-4 border-t-4 shadow rounded p-2 bg-gray-900/50 border-1 border-slate-900/50">
-                                <input type="radio" name="payment" value="Regular" id="regular" defaultChecked={payment === "Regular"} className='' />
-                                <label htmlFor="regular" className='mx-2 text-white-900/50 [text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)]'>Pay at the retrieval</label>
-                            </div>
+                <motion.div 
+                    className="mt-6 p-6 bg-zinc-800/30 rounded-lg border border-zinc-700"
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    transition={{ duration: 0.3 }}
+                >
+                    <h2 className="text-lg font-medium text-white mb-4">
+                        <span className="text-rose-500 mr-1">*</span>
+                        {t('checkout.contactInformation')}
+                    </h2>
+                    
+                    <div className="space-y-3">
+                        <div>
+                            <input 
+                                type="text"
+                                placeholder={t('checkout.firstName')}
+                                className="w-full p-3 rounded-lg bg-zinc-900/50 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-60"
+                                name="firstName"
+                                value={formData.firstName}
+                                onChange={handleInputChange}
+                                disabled={loginMethod !== "Anonymous"} 
+                            />
+                            {formErrors.firstName && <div className="mt-1 text-rose-500 text-sm">{formErrors.firstName}</div>}
                         </div>
-                    </form>
-                    <div className='flex flex-col justify-between items-center'>
-                        <button disabled={!isFormCompleteAndValid(formData, formErrors)} className='[text-shadow:_1px_1px_0_rgb(0_0_0_/_40%)] mt-4 bg-teal-500/70 border-2 border-slate-500/50 hover:bg-orange-900/50 hover:text-white text-shadow text-white font-bold rounded-full transition-colors duration-200 py-2 px-4 text-slate-900/50 disabled:bg-gray-500/50' onClick={handleCheckout}>Confirm Booking</button>
+                        
+                        <div>
+                            <input 
+                                type="text"
+                                placeholder={t('checkout.lastName')}
+                                className="w-full p-3 rounded-lg bg-zinc-900/50 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-60"
+                                name="lastName"
+                                value={formData.lastName}
+                                onChange={handleInputChange}
+                                disabled={loginMethod !== "Anonymous"} 
+                            />
+                            {formErrors.lastName && <div className="mt-1 text-rose-500 text-sm">{formErrors.lastName}</div>}
+                        </div>
+                        
+                        <div>
+                            <input 
+                                type="email"
+                                placeholder={t('checkout.email')}
+                                className="w-full p-3 rounded-lg bg-zinc-900/50 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-60"
+                                name="email"
+                                value={formData.email}
+                                onChange={handleInputChange}
+                                disabled={loginMethod !== "Anonymous"} 
+                            />
+                            {formErrors.email && <div className="mt-1 text-rose-500 text-sm">{formErrors.email}</div>}
+                        </div>
+                        
+                        <div>
+                            <input 
+                                type="tel"
+                                placeholder={t('checkout.phone')}
+                                className="w-full p-3 rounded-lg bg-zinc-900/50 border border-zinc-700 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent disabled:opacity-60"
+                                name="phone"
+                                value={formData.phone}
+                                onChange={handleInputChange}
+                                disabled={loginMethod !== "Anonymous"} 
+                            />
+                            {formErrors.phone && <div className="mt-1 text-rose-500 text-sm">{formErrors.phone}</div>}
+                        </div>
+                    </div>
+                    
+                    <div className="mt-6 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                        <h2 className="text-lg font-medium text-white mb-3">{t('checkout.paymentMethod')}</h2>
+                        <div className="p-3 bg-zinc-900/50 rounded-lg border border-zinc-700 flex items-center">
+                            <input 
+                                type="radio" 
+                                name="payment" 
+                                value="Regular" 
+                                id="regular" 
+                                defaultChecked={payment === "Regular"} 
+                                className="mr-3 h-4 w-4 text-teal-500 focus:ring-teal-400" 
+                            />
+                            <label htmlFor="regular" className="text-white">{t('checkout.payAtRetrieval')}</label>
+                        </div>
+                    </div>
+                    
+                    <div className="mt-6">
+                        <button 
+                            disabled={!isFormCompleteAndValid(formData, formErrors)} 
+                            className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-300 flex items-center justify-center
+                                ${!isFormCompleteAndValid(formData, formErrors)
+                                    ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
+                                    : 'bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white shadow-lg'
+                                }`}
+                            onClick={handleCheckout}
+                        >
+                            {t('checkout.confirmBooking')}
+                        </button>
                     </div>
                 </motion.div>
             );
@@ -250,67 +314,163 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
         return null;
     };
 
+    // Määritellään accessories-array käyttäen t-funktiota
+    const accessories = [
+        { id: 'helmet', name: t('accessories.helmet'), price: 5 },
+        { id: 'lock', name: t('accessories.lock'), price: 3 },
+        { id: 'lights', name: t('accessories.lights'), price: 4 },
+        { id: 'bottle', name: t('accessories.bottle'), price: 2 }
+    ];
+
+    // Käytetään accessoriesData-muuttujaa accessories-arrayn sijaan
+    const getAccessoryName = (accessoryId: string): string => {
+        // Määritellään accessory-nimet käännösten avulla
+        const accessoryNames: Record<string, string> = {
+            'helmet': t ? t('accessories.helmet') : 'Helmet',
+            'lock': t ? t('accessories.lock') : 'Lock',
+            'lights': t ? t('accessories.lights') : 'Lights',
+            'bottle': t ? t('accessories.bottle') : 'Water Bottle'
+        };
+        
+        return accessoryNames[accessoryId] || accessoryId;
+    };
 
     return (
-        <motion.div className="basket p-5 border-4 border-teal-700/50 rounded-lg mt-5 bg-white"
+        <motion.div 
+            className="mt-6 bg-zinc-800/30 rounded-lg border border-zinc-700 overflow-hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}>
-            <div className="overflow-y-auto max-h-[300px] sm:max-h-[500px]">
-                {basket.map((item, index) => {
-                    // Convert strings to Date objects
-                    const startDate = new Date(item.startDate);
-                    const endDate = item.endDate ? new Date(item.endDate) : startDate;
-                    // Calculate day difference
-                    const dayDifference = calculateDayDifference(startDate, endDate);
-                    return (
-
-                        <motion.div className='p-4 border-2 border-teal-300/50 rounded-lg bg-black flex flex-col justify-between items-start' key={index}
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            transition={{ duration: 0.5 }}>
-
-                            <div className='p-2 bg-gray-900/50 border-1 border-white-500/50 rounded'>
-                                <h1 className='text-lg mb-1'>{item.name}</h1> <hr></hr><h3 className='mt-1'>Date:
-                                    <span className='text-lg text-[#FFD700] mx-1'>{item.startDate.toLocaleDateString('en-GB')}
-                                        {item.endDate ? ` - ${item.endDate.toLocaleDateString('en-GB')}` : ''}</span></h3>
-                                <h2 className='mt-1 mb-1'>Quantity: <span className='text-lg text-[#FFD700]'>{item.quantity}</span></h2>
-                                <h4 className='mt-1'>Size: <span className='text-lg text-[#FFD700]'>{item.size}</span></h4>
-                                <hr></hr>
-                                <h5 className='mt-1'>Price: <span className='text-lg text-[#FFD700]'>{item.price * (item.quantity + dayDifference)} €</span></h5>
-
-                            </div><div className="w-full flex justify-center mt-4">
-                                <button color="primary" className='p-2 hover:bg-danger-200 text-white font-bold rounded-full transition-colors duration-200' onClick={() => removeFromBasket(index)}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" x="0px" y="0px" width="24" height="24" viewBox="0 0 16 16">
-                                        <circle cx="8" cy="8" r="8" fill="#fe3155"></circle>
-                                        <polygon fill="#fff" points="11.536,10.121 9.414,8 11.536,5.879 10.121,4.464 8,6.586 5.879,4.464 4.464,5.879 6.586,8 4.464,10.121 5.879,11.536 8,9.414 10.121,11.536"></polygon>
+            transition={{ duration: 0.5 }}
+        >
+            <div className="p-4 border-b border-zinc-700 flex justify-between items-center">
+                <h2 className="text-lg font-medium text-white font-metrophic">{t('basket.yourBasket')}</h2>
+                {basket.length > 0 && (
+                    <span className="bg-teal-500 text-white text-xs font-medium px-2.5 py-1 rounded-full">
+                        {basket.length}
+                    </span>
+                )}
+            </div>
+            
+            <div className="overflow-y-auto max-h-[300px] p-4 space-y-3">
+                {basket.length === 0 ? (
+                    <div className="text-center py-6">
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-800/50 mb-4">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                        </div>
+                        <p className="text-zinc-400">{t('basket.emptyBasket')}</p>
+                    </div>
+                ) : (
+                    basket.map((item, index) => {
+                        // Convert strings to Date objects
+                        const startDate = new Date(item.startDate);
+                        const endDate = item.endDate ? new Date(item.endDate) : startDate;
+                        // Calculate day difference
+                        const dayDifference = calculateDayDifference(startDate, endDate);
+                        const days = dayDifference + 1; // Number of days
+                        
+                        // Calculate total price
+                        let itemTotalPrice = item.totalPrice;
+                        if (!itemTotalPrice) {
+                            // If totalPrice is not defined, calculate it
+                            let accessoriesPrice = 0;
+                            if (item.accessories && item.accessories.length > 0) {
+                                accessoriesPrice = item.accessories.reduce((acc: number, accessoryId: string) => {
+                                    const accessory = accessories.find(a => a.id === accessoryId);
+                                    return acc + (accessory ? accessory.price : 0);
+                                }, 0);
+                            }
+                            itemTotalPrice = ((item.price * days) + accessoriesPrice) * item.quantity;
+                        }
+                        
+                        return (
+                            <motion.div 
+                                key={index}
+                                className="p-4 bg-zinc-900/50 rounded-lg border border-zinc-800 relative"
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                transition={{ duration: 0.3, delay: index * 0.05 }}
+                            >
+                                <button 
+                                    className="absolute top-2 right-2 p-1 rounded-full bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 transition-colors"
+                                    onClick={() => removeFromBasket(index)}
+                                    aria-label="Remove item"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                                     </svg>
                                 </button>
-
-                            </div>
-
-                        </motion.div>
-
-                    );
-                })}
+                                
+                                <h3 className="text-white font-medium mb-2">{item.name}</h3>
+                                
+                                <div className="grid grid-cols-2 gap-2 text-sm text-zinc-400 mb-3">
+                                    <div>
+                                        <span className="block">{t('basket.date')}:</span>
+                                        <span className="text-teal-400">
+                                            {startDate.toLocaleDateString('fi-FI')}
+                                            {endDate && startDate.getTime() !== endDate.getTime() && 
+                                                ` - ${endDate.toLocaleDateString('fi-FI')}`}
+                                        </span>
+                                    </div>
+                                    
+                                    <div>
+                                        <span className="block">{t('basket.quantity')}:</span>
+                                        <span className="text-teal-400">{item.quantity}</span>
+                                    </div>
+                                    
+                                    <div>
+                                        <span className="block">{t('basket.size')}:</span>
+                                        <span className="text-teal-400">{item.size}</span>
+                                    </div>
+                                    
+                                    <div>
+                                        <span className="block">{t('basket.days')}:</span>
+                                        <span className="text-teal-400">{days}</span>
+                                    </div>
+                                    
+                                    <div>
+                                        <span className="block">{t('basket.price')}:</span>
+                                        <span className="text-teal-400 font-medium">
+                                            {itemTotalPrice}€
+                                        </span>
+                                    </div>
+                                </div>
+                                
+                                {item.accessories && item.accessories.length > 0 && (
+                                    <div className="mt-2 pt-2 border-t border-zinc-800">
+                                        <span className="block text-sm text-zinc-400 mb-1">{t('basket.accessories')}:</span>
+                                        <div className="flex flex-wrap gap-2">
+                                            {item.accessories.map(accessoryId => (
+                                                <span 
+                                                    key={accessoryId}
+                                                    className="inline-flex items-center px-2 py-1 rounded-md text-xs bg-zinc-800 text-teal-400"
+                                                >
+                                                    {getAccessoryName(accessoryId)}
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                        );
+                    })
+                )}
             </div>
-
-            {/* Display total price */}
-            <div className="total-price mt-4 p-4 border-t-4 border-teal-900/50 bg-teal-800/50 rounded">
-                <div className="w-full flex justify-center mt-4">
-
-                    <h2 className="price"><span className="text-white-500/50 text-xl shadow rounded p-2 bg-gray-900/50 border-1 border-white-500/50">{calculateTotalPrice(basket)} €</span></h2>
+            
+            {basket.length > 0 && (
+                <div className="p-4 border-t border-zinc-700 bg-zinc-800/50">
+                    <div className="flex justify-between items-center">
+                        <span className="text-zinc-400">{t('basket.total')}:</span>
+                        <span className="text-xl font-bold text-teal-400">{calculateTotalPrice(basket)}€</span>
+                    </div>
+                    {renderCheckoutButton()}
                 </div>
-
-            </div>
-            {renderCheckoutButton()}
+            )}
+            
             {renderExtendedView()}
-
-
-
-
         </motion.div>
     );
 };
