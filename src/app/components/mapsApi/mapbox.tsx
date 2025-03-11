@@ -74,7 +74,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                 mapRef.current = null;
             }
         };
-    }, [tracks.length]); // Riippuu vain tracks.length, ei enhancedStyle
+    }, [tracks.length, enhancedStyle]);
 
     // Päivitä kartan tyyli jos se muuttuu
     useEffect(() => {
@@ -257,7 +257,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
         if (mapInitialized && mapRef.current && tracks.length > 0) {
             loadTracks(mapRef.current);
         }
-    }, [mapInitialized, tracks.length]);
+    }, [mapInitialized, tracks.length, loadTracks]);
 
     // Päivitä kartan koko kun fullscreen-tila muuttuu
     useEffect(() => {

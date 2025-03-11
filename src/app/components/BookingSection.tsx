@@ -109,7 +109,7 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
     }
     
     return minAvailableQuantity === Infinity ? 0 : minAvailableQuantity;
-  }, [dateAvailability]);
+  }, [dateAvailability, setDateAvailability]);
 
   // update available stock for size
   useEffect(() => {
@@ -128,7 +128,7 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
       
       setAvailableStockBySize(newAvailableStockBySize);
     }
-  }, [selectedBike, startDate, endDate, calculateAvailableStock]);
+  }, [selectedBike, startDate, endDate, calculateAvailableStock, setSelectedBikeAvailableStock]);
 
   // available stock for size
   const getAvailableStockForSize = (size: BikeSizeKey): number => {

@@ -28,7 +28,7 @@ const Login: React.FC<BookingProps> = ({ selectedAccessories, setSelectedAccesso
         if (storedLoginMethod) {
             setLoginMethod(storedLoginMethod);
         }
-    }, []);
+    }, [setLoginMethod]);
 
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -51,7 +51,7 @@ const Login: React.FC<BookingProps> = ({ selectedAccessories, setSelectedAccesso
             }
         });
         return () => unsubscribe();
-    }, [auth]);
+    }, [auth, setLoginMethod, setUser, setUserLoggedIn]);
 
     // Set login method and store in localStorage
     const setAndStoreLoginMethod = (method: string) => {
@@ -67,7 +67,7 @@ const Login: React.FC<BookingProps> = ({ selectedAccessories, setSelectedAccesso
 
         // Cleanup subscription on unmount
         return () => unsubscribe();
-    }, [auth]);
+    }, [auth, setUser]);
 
     const handleAnonymousSignIn = async () => {
         try {
