@@ -7,20 +7,19 @@ export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-
+  const [loginMethod, setLoginMethod] = useState('');
+  
   const logout = async () => {
     try {
-        await signOut(auth); // Kirjaa käyttäjä ulos Firebase-authentikoinnista
-        setUser(null); // Päivitä käyttäjän tila
-        localStorage.removeItem('loginMethod'); // Poista kirjautumistapa
+        await signOut(auth); 
+        setUser(null); 
+        localStorage.removeItem('loginMethod');
         setLoginMethod('');
         setRegistrationModalOpen(false);
     } catch (error) {
         console.error("Logout error:", error);
     }
 };
-
-  const login = () => setUser(true);
 
 
   useEffect(() => {
@@ -31,7 +30,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, logout, loginMethod, setLoginMethod }}>
       {children}
     </AuthContext.Provider>
   );

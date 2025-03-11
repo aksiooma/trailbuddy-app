@@ -8,15 +8,14 @@ import BookingForm from './BookingForm';
 import RegistrationForm from './RegisterationForm';
 import Modal from './RegisterationModal';
 import { useLanguage } from '../context/LanguageContext';
+import { useUser } from '../context/AuthContext';
 
 const Login: React.FC<BookingProps> = ({ selectedAccessories, setSelectedAccessories, accessories, selectedBike, selectedSize, setIsRegistrationCompleted, isRegistrationCompleted, handleAccessoryToggle, startDate, endDate, selectedBikeAvailableStock, dateAvailability, setSelectedBikeAvailableStock, setDateAvailability, setEndDate, setStartDate, datePickerRef, userLoggedIn, setUserLoggedIn }) => {
     const { t } = useLanguage();
-    const [user, setUser] = useState<User | null>(null);
     const auth = getAuth();
-    const [loginMethod, setLoginMethod] = useState<string>('');
     const [registrationUserData, setRegistrationUserData] = useState<RegistrationUserData>({ user: null, token: undefined });
     const [isProfileComplete, setIsProfileComplete] = useState(true);
-    const [isLoading, setIsLoading] = useState(false);
+    const { user, logout, loginMethod, setLoginMethod, setUser } = useUser();
     const [googleLoading, setGoogleLoading] = useState(false);
     const [anonymousLoading, setAnonymousLoading] = useState(false);
 
@@ -134,22 +133,7 @@ const Login: React.FC<BookingProps> = ({ selectedAccessories, setSelectedAccesso
         return ['Small', 'Medium', 'Large'].includes(size ?? '');
     }
 
-    // Function to handle logout
-    const handleLogout = () => {
-        signOut(auth)
-            .then(() => {
-                // Sign-out successful.
-                setUser(null); // Update the user state to null
-                localStorage.removeItem('loginMethod');
-                setLoginMethod('');
-                setRegistrationModalOpen(false);
-            })
-            .catch((error) => {
-                // An error happened.
-                console.error(error);
-            });
-    };
-
+    
     if (user) {
         // Ensure selectedSize is a valid BikeSizeKey or null
         const validatedSize = isBikeSizeKey(selectedSize) ? selectedSize : null;
@@ -161,7 +145,7 @@ const Login: React.FC<BookingProps> = ({ selectedAccessories, setSelectedAccesso
             accessories={accessories} 
             handleAccessoryToggle={handleAccessoryToggle} 
             user={user} 
-            onLogout={handleLogout} 
+            onLogout={logout} 
             loginMethod={loginMethod} 
             isProfileComplete={isProfileComplete} 
             setRegistrationModalOpen={setRegistrationModalOpen} 
