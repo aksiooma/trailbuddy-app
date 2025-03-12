@@ -586,7 +586,6 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
                                         availabilityData={dateAvailability}
                                         selectedBike={selectedBike}
                                         selectedSize={selectedSize}
-                                        basketRef={basketRef}
                                     />
                                 )}
                             

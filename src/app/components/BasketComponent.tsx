@@ -59,7 +59,8 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
     db,
     user,
     setIsRegistrationCompleted,
-    isRegistrationCompleted
+    isRegistrationCompleted,
+    basketRef
 
 
 }) => {
@@ -93,6 +94,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
         };
 
         loadData();
+
 
         // Reset the flag
         setIsRegistrationCompleted(false);
