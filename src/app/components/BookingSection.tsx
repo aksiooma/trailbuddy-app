@@ -22,7 +22,6 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
   const [selectedBikeAvailableStock, setSelectedBikeAvailableStock] = useState<number>(0);
   const [dateAvailability, setDateAvailability] = useState<AvailabilityData>({});
   const [availableStockBySize, setAvailableStockBySize] = useState<{ [key in BikeSizeKey]?: number }>({});
-  const [userLoggedIn, setUserLoggedIn] = useState(false);
 
   useEffect(() => {
       setAccessories([
@@ -172,7 +171,6 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
                 getAvailableStockForSize={getAvailableStockForSize}
                 startDate={startDate}
                 datePickerRef={datePickerRef}
-                userLoggedIn={userLoggedIn}
               />
             </div>
 
@@ -226,8 +224,6 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
                 setSelectedBikeAvailableStock={setSelectedBikeAvailableStock}
                 setDateAvailability={setDateAvailability}
                 datePickerRef={datePickerRef}
-                userLoggedIn={userLoggedIn}
-                setUserLoggedIn={setUserLoggedIn}
               />
             </div>
           </motion.div>

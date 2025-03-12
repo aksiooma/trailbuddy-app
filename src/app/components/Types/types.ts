@@ -145,7 +145,6 @@ export interface BookingProps {
   setStartDate: React.Dispatch<React.SetStateAction<Date | null>>;
   setEndDate: React.Dispatch<React.SetStateAction<Date | null>>;
   datePickerRef: React.RefObject<HTMLDivElement>;
-  setUserLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 export interface AvailabilityData {
