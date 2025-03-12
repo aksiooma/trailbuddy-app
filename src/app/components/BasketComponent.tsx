@@ -343,7 +343,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <div className="p-4 border-b border-zinc-700 flex justify-between items-center">
+            <div className="p-4 border-b border-zinc-700 flex justify-between items-center" ref={basketRef}>
                 <h2 className="text-lg font-medium text-white font-metrophic">{t('basket.yourBasket')}</h2>
                 {basket.length > 0 && (
                     <span className="bg-teal-500 text-white text-xs font-medium px-2.5 py-1 rounded-full">

@@ -195,7 +195,6 @@ export interface BookingDatePickerProps {
   availabilityData: AvailabilityData;
   selectedBike: Bike | null;
   selectedSize: BikeSizeKey | null;
-  basketRef: React.RefObject<HTMLDivElement>;
 }
 
 //Basket related

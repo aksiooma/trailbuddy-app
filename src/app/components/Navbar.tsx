@@ -19,7 +19,8 @@ const Navbar: React.FC<NavbarProps> = ({ onBookingClick, onTrailMapsClick, onAbo
   const [scrolled, setScrolled] = useState(false);
   const { language, setLanguage, t } = useLanguage();
   const { user, logout } = useUser();
-  // Seuraa scrollausta ja lisää tausta kun käyttäjä scrollaa
+  
+  // Follows the scroll and adds a background when the user scrolls
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 20) {
@@ -197,33 +198,45 @@ const Navbar: React.FC<NavbarProps> = ({ onBookingClick, onTrailMapsClick, onAbo
             className="md:hidden bg-gradient-to-b from-zinc-900/90 to-zinc-900/80 backdrop-blur-md shadow-lg"
           >
             <div className="px-4 pt-4 pb-6 space-y-3">
-              <button
+              <div 
                 onClick={() => {
-                  onBookingClick();
                   setIsOpen(false);
+                  setTimeout(() => {
+                    onBookingClick();
+                  }, 100);
                 }}
-                className="text-white hover:text-teal-300 bg-zinc-800/70 hover:bg-teal-500/20 block px-4 py-3 rounded-lg text-lg font-medium w-full text-left transition-all shadow-md"
+                className="text-white hover:text-teal-300 bg-zinc-800/70 hover:bg-teal-500/20 block px-4 py-3 rounded-lg text-lg font-medium w-full text-left transition-all shadow-md cursor-pointer touch-action-manipulation"
+                role="button"
+                tabIndex={0}
               >
                 {t('nav.booking')}
-              </button>
-              <button
+              </div>
+              <div
                 onClick={() => {
-                  onTrailMapsClick();
                   setIsOpen(false);
+                  setTimeout(() => {
+                    onTrailMapsClick();
+                  }, 100);
                 }}
-                className="text-white hover:text-teal-300 bg-zinc-800/70 hover:bg-teal-500/20 block px-4 py-3 rounded-lg text-lg font-medium w-full text-left transition-all shadow-md"
+                className="text-white hover:text-teal-300 bg-zinc-800/70 hover:bg-teal-500/20 block px-4 py-3 rounded-lg text-lg font-medium w-full text-left transition-all shadow-md cursor-pointer touch-action-manipulation"
+                role="button"
+                tabIndex={0}
               >
                 {t('nav.trailMaps')}
-              </button>
-              <button
+              </div>
+              <div
                 onClick={() => {
-                  onAboutUsClick();
                   setIsOpen(false);
+                  setTimeout(() => {
+                    onAboutUsClick();
+                  }, 100);
                 }}
-                className="text-white hover:text-teal-300 bg-zinc-800/70 hover:bg-teal-500/20 block px-4 py-3 rounded-lg text-lg font-medium w-full text-left transition-all shadow-md"
+                className="text-white hover:text-teal-300 bg-zinc-800/70 hover:bg-teal-500/20 block px-4 py-3 rounded-lg text-lg font-medium w-full text-left transition-all shadow-md cursor-pointer touch-action-manipulation"
+                role="button"
+                tabIndex={0}
               >
                 {t('nav.aboutUs')}
-              </button>
+              </div>
             </div>
           </motion.div>
         )}
