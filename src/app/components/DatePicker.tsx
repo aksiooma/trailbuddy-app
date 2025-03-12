@@ -14,6 +14,7 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
     availabilityData,
     selectedBike,
     selectedSize,
+    basketRef
 }) => {
     const { language, t } = useLanguage();
     const [showRangeMessage, setShowRangeMessage] = useState(false);
@@ -197,7 +198,7 @@ const BookingDatePicker: React.FC<BookingDatePickerProps> = ({
     };
 
     return (
-        <div className="w-full">
+        <div className="w-full" ref={basketRef}>
             {showRangeMessage && (
                 <div className="mb-3 p-2 bg-amber-500/20 border border-amber-500/30 rounded-md text-amber-400 text-sm">
                     {t('datepicker.maxRangeMessage') || 'Voit valita enintään 7 päivän ajanjakson.'}

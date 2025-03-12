@@ -14,7 +14,8 @@ const commonImageProps = {
 const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike, onSizeSelect, selectedSize, accessories, selectedAccessories, setSelectedAccessories, getAvailableStockForSize, startDate, datePickerRef }) => {
     const bikes = useFetchBikes();
     const { t } = useLanguage();
-    const { user } = useUser();    
+    const { user } = useUser(); 
+       
     const scrollToDatePicker = () => {
         if (datePickerRef.current) {
             datePickerRef.current.scrollIntoView({ behavior: 'smooth' });

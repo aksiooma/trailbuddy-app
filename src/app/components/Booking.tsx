@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import DatePicker from './DatePicker';
 import { Bike, BikeSizeKey, BookingFlowProps, ReservationItem, Reservation } from './Types/types';
 import { runTransaction, doc, onSnapshot, collection, serverTimestamp, deleteDoc, getFirestore, getDoc, } from "firebase/firestore"
@@ -11,7 +11,7 @@ import RegistrationForm from './RegisterationForm';
 import Modal from './RegisterationModal';
 import { useLanguage } from '../context/LanguageContext';
 
-const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, selectedBike, user, onLogout, selectedSize, accessories, selectedAccessories, setSelectedAccessories, isProfileComplete, setIsProfileComplete, setRegistrationModalOpen, setIsRegistrationCompleted, isRegistrationCompleted, startDate, endDate, selectedBikeAvailableStock, dateAvailability, setSelectedBikeAvailableStock, setDateAvailability, setStartDate, setEndDate, datePickerRef }) => {
+const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, selectedBike, user, onLogout, selectedSize, accessories, selectedAccessories, setSelectedAccessories, isProfileComplete, setIsProfileComplete, setRegistrationModalOpen, setIsRegistrationCompleted, isRegistrationCompleted, startDate, endDate, selectedBikeAvailableStock, dateAvailability, setSelectedBikeAvailableStock, setDateAvailability, setStartDate, setEndDate, datePickerRef, basketRef }) => {
     const { t } = useLanguage();
     const availableBikes = useFetchBikes();
     const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
@@ -22,6 +22,13 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
     const [showDatepicker, setShowDatepicker] = useState(true);
     const [isExtendedViewVisible, setIsExtendedViewVisible] = useState(false);
     const [loginMethod, setLoginMethod] = useState('');
+
+
+    const scrollToBasket = () => {
+        if (basketRef.current) {
+            basketRef.current.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
 
 
     useEffect(() => {
@@ -579,6 +586,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
                                         availabilityData={dateAvailability}
                                         selectedBike={selectedBike}
                                         selectedSize={selectedSize}
+                                        basketRef={basketRef}
                                     />
                                 )}
                             
@@ -604,7 +612,10 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
                                                         ? 'bg-zinc-700 text-zinc-400 cursor-not-allowed'
                                                         : 'bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white shadow-lg'
                                                     }`}
-                                                onClick={addToBasket}
+                                                onClick={() => {
+                                                    addToBasket();
+                                                    scrollToBasket();
+                                                }}
                                             >
                                                 {isAdding ? (
                                                     <>
@@ -638,6 +649,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
                         setBasket={setBasket}
                         setIsRegistrationCompleted={setIsRegistrationCompleted}
                         isRegistrationCompleted={isRegistrationCompleted}
+                        basketRef={basketRef}
                     />
                 </motion.div>
             );

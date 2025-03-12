@@ -124,6 +124,7 @@ export interface BookingFlowProps {
   setStartDate: React.Dispatch<React.SetStateAction<Date | null>>;
   setEndDate: React.Dispatch<React.SetStateAction<Date | null>>; 
   datePickerRef: React.RefObject<HTMLDivElement>;
+  basketRef: React.RefObject<HTMLDivElement>;
 }
 
 
@@ -145,6 +146,7 @@ export interface BookingProps {
   setStartDate: React.Dispatch<React.SetStateAction<Date | null>>;
   setEndDate: React.Dispatch<React.SetStateAction<Date | null>>;
   datePickerRef: React.RefObject<HTMLDivElement>;
+  basketRef: React.RefObject<HTMLDivElement>;
 }
 
 export interface AvailabilityData {
@@ -192,16 +194,14 @@ export interface BookingDatePickerProps {
   setEndDate: (date: Date | null) => void;
   availabilityData: AvailabilityData;
   selectedBike: Bike | null;
-  selectedSize: BikeSizeKey | null; // Add this
- 
+  selectedSize: BikeSizeKey | null;
+  basketRef: React.RefObject<HTMLDivElement>;
 }
-
 
 //Basket related
 export interface BasketItem extends ReservationItem {
-    // BasketItem perii kaikki ReservationItem:n kentät
-    totalPrice?: number; // Lisätään totalPrice-kenttä
-    days?: number; // Lisätään days-kenttä
+    totalPrice?: number;
+    days?: number;
 }
 
 export type Basket = BasketItem[];
@@ -221,7 +221,7 @@ export type BasketComponentProps = {
     db: Firestore;
     setIsRegistrationCompleted: (isComplete: boolean) => void;
     isRegistrationCompleted: boolean;
-
+    basketRef: React.RefObject<HTMLDivElement>;
 };
 
 

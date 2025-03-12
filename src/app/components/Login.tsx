@@ -25,7 +25,8 @@ const Login: React.FC<BookingProps> = ({
     setDateAvailability, 
     setEndDate, 
     setStartDate, 
-    datePickerRef
+    datePickerRef,
+    basketRef,
 }) => {
     const { t } = useLanguage();
     const { 
@@ -38,7 +39,6 @@ const Login: React.FC<BookingProps> = ({
         anonymousLoading, 
         isRegistrationModalOpen, 
         setRegistrationModalOpen,
-        userLoggedIn
     } = useUser();
     
     const [registrationUserData, setRegistrationUserData] = useState<RegistrationUserData>({ user: null, token: undefined });
@@ -79,6 +79,7 @@ const Login: React.FC<BookingProps> = ({
             setStartDate={setStartDate}
             setEndDate={setEndDate}
             datePickerRef={datePickerRef}
+            basketRef={basketRef}
         />;
     }
 

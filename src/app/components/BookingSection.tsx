@@ -22,7 +22,8 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
   const [selectedBikeAvailableStock, setSelectedBikeAvailableStock] = useState<number>(0);
   const [dateAvailability, setDateAvailability] = useState<AvailabilityData>({});
   const [availableStockBySize, setAvailableStockBySize] = useState<{ [key in BikeSizeKey]?: number }>({});
-
+  const basketRef = useRef(null);
+  
   useEffect(() => {
       setAccessories([
           { id: 'helmet', name: t('accessories.helmet'), price: 5 },
@@ -224,6 +225,7 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
                 setSelectedBikeAvailableStock={setSelectedBikeAvailableStock}
                 setDateAvailability={setDateAvailability}
                 datePickerRef={datePickerRef}
+                basketRef={basketRef}
               />
             </div>
           </motion.div>
