@@ -56,7 +56,8 @@
         "selectBikeToContinue": "Valitse pyörä jatkaaksesi",
         "selectSizeToContinue": "Valitse koko jatkaaksesi",
         "days": "Päivät",
-        "basePriceTotal": "Perushinta yhteensä"
+        "basePriceTotal": "Perushinta yhteensä",
+        "selectQuantity": "Valitse Määrä"
     },
     "login": {
         "existingUser": "Kirjaudu Sisään",

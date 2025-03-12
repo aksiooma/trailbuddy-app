@@ -354,7 +354,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
 
         return (
             <div className="flex flex-col">
-                <label htmlFor="quantity-selector" className="text-lg font-medium">Select Quantity:</label>
+                <label htmlFor="quantity-selector" className="text-lg font-medium">{t('booking.selectQuantity')}</label>
                 <select
                     id="quantity-selector"
                     className='rounded-lg p-1 mt-2 mb-2 text-xl dark text-foreground border-1 border-white-500/50'

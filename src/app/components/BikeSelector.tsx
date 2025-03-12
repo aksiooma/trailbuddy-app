@@ -5,7 +5,7 @@ import { useFetchBikes } from './hooks/useFetchBikes';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
-
+import { useUser } from '../context/AuthContext';
 const commonImageProps = {
     width: 96,
     height: 96,
@@ -14,7 +14,7 @@ const commonImageProps = {
 const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike, onSizeSelect, selectedSize, accessories, selectedAccessories, setSelectedAccessories, getAvailableStockForSize, startDate, datePickerRef, userLoggedIn}) => {
     const bikes = useFetchBikes();
     const { t } = useLanguage();
-    
+    const { user } = useUser();
     const scrollToDatePicker = () => {
         if (datePickerRef.current) {
             datePickerRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -208,7 +208,7 @@ const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike,
                 </motion.div>
             )}
 
-            {userLoggedIn && (
+            {user && (
                 <div className="flex justify-center mt-10 md:hidden"> 
                     <button
                         onClick={scrollToDatePicker}

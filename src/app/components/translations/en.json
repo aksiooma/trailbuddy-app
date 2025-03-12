@@ -56,7 +56,8 @@
         "selectBikeToContinue": "Select a bike to continue",
         "selectSizeToContinue": "Select a size to continue",
         "days": "Days",
-        "basePriceTotal": "Base price total"
+        "basePriceTotal": "Base price total",
+        "selectQuantity": "Select Quantity"
     },
     "login": {
         "existingUser": "Existing User Login",
