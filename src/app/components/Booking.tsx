@@ -11,7 +11,7 @@ import RegistrationForm from './RegisterationForm';
 import Modal from './RegisterationModal';
 import { useLanguage } from '../context/LanguageContext';
 
-const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, selectedBike, user, onLogout, selectedSize, accessories, selectedAccessories, setSelectedAccessories, isProfileComplete, setIsProfileComplete, setRegistrationModalOpen, setIsRegistrationCompleted, isRegistrationCompleted, startDate, endDate, selectedBikeAvailableStock, dateAvailability, setSelectedBikeAvailableStock, setDateAvailability, setStartDate, setEndDate, datePickerRef, basketRef }) => {
+const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, selectedBike, user, onLogout, selectedSize, accessories, selectedAccessories, setSelectedAccessories, isProfileComplete, setIsProfileComplete, setRegistrationModalOpen, setIsRegistrationCompleted, isRegistrationCompleted, startDate, endDate, selectedBikeAvailableStock, dateAvailability, setSelectedBikeAvailableStock, setDateAvailability, setStartDate, setEndDate, datePickerRef, basketRef, confirmationRef }) => {
     const { t } = useLanguage();
     const availableBikes = useFetchBikes();
     const [selectedQuantity, setSelectedQuantity] = useState<number>(1);
@@ -26,9 +26,16 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
 
     const scrollToBasket = () => {
         if (basketRef.current) {
-            basketRef.current.scrollIntoView({ behavior: 'smooth' });
+            const yOffset = -200;
+            const y = basketRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+
+            window.scrollTo({
+                top: y,
+                behavior: 'smooth'
+            });
         }
     };
+
 
 
     useEffect(() => {
@@ -649,7 +656,9 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
                         setIsRegistrationCompleted={setIsRegistrationCompleted}
                         isRegistrationCompleted={isRegistrationCompleted}
                         basketRef={basketRef}
+                        confirmationRef={confirmationRef}
                     />
+                    <div ref={confirmationRef}></div>
                 </motion.div>
             );
         } else {

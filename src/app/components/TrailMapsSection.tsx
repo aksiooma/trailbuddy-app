@@ -23,23 +23,23 @@ const TrailMapsSection = forwardRef<HTMLDivElement>((props, ref) => {
 
   const handleMapLoad = (loaded: boolean | ((prevState: boolean) => boolean)) => {
     if (typeof loaded === 'boolean') {
-    setIsMapLoaded(loaded);
+      setIsMapLoaded(loaded);
     } else {
       setIsMapLoaded((prev) => loaded(prev));
     }
     setIsLoading(false);
   };
-  
+
   const handleToggleMap = async () => {
     if (!showMap) {
       setIsLoading(true);
       if (!tracks.length) {
-      try {
-        const trackDetails = await fetchGPXTracks();
-        const detailedTracks = await fetchGPXDataWithDetails(trackDetails);
-        setTracks(detailedTracks);
-      } catch (error) {
-        console.error("Error fetching tracks:", error);
+        try {
+          const trackDetails = await fetchGPXTracks();
+          const detailedTracks = await fetchGPXDataWithDetails(trackDetails);
+          setTracks(detailedTracks);
+        } catch (error) {
+          console.error("Error fetching tracks:", error);
         } finally {
           setIsLoading(false);
         }
@@ -163,7 +163,7 @@ const TrailMapsSection = forwardRef<HTMLDivElement>((props, ref) => {
                     </svg>
                   )}
                   <span className="relative">
-                    {showMap ? t('trailmaps.hideMap') || 'Hide Map' : t('trailmaps.showMap') || 'Show Map'}
+                    {showMap ? t('trailmaps.hideMap') : t('trailmaps.showMap')}
                   </span>
                 </motion.button>
               )}
@@ -185,19 +185,23 @@ const TrailMapsSection = forwardRef<HTMLDivElement>((props, ref) => {
                     }}
                   >
                     <span className="absolute inset-0 w-full h-full rounded-lg bg-gradient-to-br from-violet-500/50 to-pink-500/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200"></span>
-                    <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      {isFullScreen ? (
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      ) : (
+                    {isFullScreen ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                      <path d="M5.5 0a.5.5 0 0 1 .5.5v4A1.5 1.5 0 0 1 4.5 6h-4a.5.5 0 0 1 0-1h4a.5.5 0 0 0 .5-.5v-4a.5.5 0 0 1 .5-.5m5 0a.5.5 0 0 1 .5.5v4a.5.5 0 0 0 .5.5h4a.5.5 0 0 1 0 1h-4A1.5 1.5 0 0 1 10 4.5v-4a.5.5 0 0 1 .5-.5M0 10.5a.5.5 0 0 1 .5-.5h4A1.5 1.5 0 0 1 6 11.5v4a.5.5 0 0 1-1 0v-4a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 1-.5-.5m10 1a1.5 1.5 0 0 1 1.5-1.5h4a.5.5 0 0 1 0 1h-4a.5.5 0 0 0-.5.5v4a.5.5 0 0 1-1 0z"/>
+                    
+                      </svg>
+                    ) : (
+                      <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5v-4m0 4h-4m4 0l-5-5" />
-                      )}
-                    </svg>
+                      </svg>
+                    )}
+                  
                     <span className="relative">
-                      {isFullScreen ? t('trailmaps.exitFullscreen') || 'Exit Fullscreen' : t('trailmaps.fullscreen') || 'Enter Fullscreen'}
+                      {isFullScreen ? t('trailmaps.exitFullscreen') : t('trailmaps.fullscreen')}
                     </span>
                   </motion.button>
 
-                  {isFullScreen && (
+                  {isFullScreen && window.innerWidth >= 768 && (
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
@@ -228,8 +232,8 @@ const TrailMapsSection = forwardRef<HTMLDivElement>((props, ref) => {
             <AnimatePresence>
               {showMap && (
                 <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.3 }}
                   className={isFullScreen ? 'absolute inset-0' : 'relative'}
@@ -284,7 +288,7 @@ const TrailMapsSection = forwardRef<HTMLDivElement>((props, ref) => {
                         `}
                       >
                         <div className="p-4 space-y-4">
-                {tracks.map((track, index) => (
+                          {tracks.map((track, index) => (
                             <motion.div
                               key={track.name}
                               initial={{ opacity: 0, y: 20 }}
@@ -292,11 +296,11 @@ const TrailMapsSection = forwardRef<HTMLDivElement>((props, ref) => {
                               transition={{ duration: 0.3, delay: index * 0.1 }}
                               className="bg-zinc-800/50 backdrop-blur-sm rounded-xl border border-zinc-700/50 overflow-hidden hover:border-cyan-500/30 transition-colors duration-200"
                             >
-                    <button
-                      onClick={() => selectTrackOnMap(track.name)}
+                              <button
+                                onClick={() => selectTrackOnMap(track.name)}
                                 className={`w-full p-4 text-left transition-all duration-200 ${selectedTrack === track.name
-                                    ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300'
-                                    : 'hover:bg-white/5'
+                                  ? 'bg-gradient-to-r from-cyan-500/20 to-blue-500/20 text-cyan-300'
+                                  : 'hover:bg-white/5'
                                   }`}
                               >
                                 <div className="flex items-center justify-between">
@@ -311,10 +315,10 @@ const TrailMapsSection = forwardRef<HTMLDivElement>((props, ref) => {
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                                   </svg>
                                 </div>
-                    </button>
+                              </button>
 
                               <AnimatePresence>
-                    {selectedTrack === track.name && (
+                                {selectedTrack === track.name && (
                                   <motion.div
                                     initial={{ opacity: 0, height: 0 }}
                                     animate={{ opacity: 1, height: 'auto' }}
@@ -324,9 +328,9 @@ const TrailMapsSection = forwardRef<HTMLDivElement>((props, ref) => {
                                   >
                                     <p className="text-zinc-300 mb-4">{track.description}</p>
                                     <div className="flex flex-wrap gap-2">
-                        <a
-                          href={downloadUrls[track.path]}
-                          download
+                                      <a
+                                        href={downloadUrls[track.path]}
+                                        download
                                         className="inline-flex items-center px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500/20 to-blue-500/20 hover:from-cyan-500/30 hover:to-blue-500/30 text-cyan-300 transition-all duration-200"
                                       >
                                         <svg className="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -359,12 +363,12 @@ const TrailMapsSection = forwardRef<HTMLDivElement>((props, ref) => {
                               </AnimatePresence>
                             </motion.div>
                           ))}
-                      </div>
+                        </div>
                       </motion.div>
                     )}
 
                     {/* track list button Fullscreen */}
-                    {isFullScreen && !showTrackList && (
+                    {isFullScreen && !showTrackList ? (
                       <motion.button
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
@@ -375,6 +379,20 @@ const TrailMapsSection = forwardRef<HTMLDivElement>((props, ref) => {
                       >
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+
+                        </svg>
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={toggleTrackList}
+                        className="absolute bottom-4 right-4 z-30 p-3 rounded-full bg-gradient-to-r from-violet-500 to-pink-500 text-white shadow-lg"
+                      >
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                         </svg>
                       </motion.button>
                     )}

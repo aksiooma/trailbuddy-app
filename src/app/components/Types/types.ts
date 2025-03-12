@@ -125,6 +125,7 @@ export interface BookingFlowProps {
   setEndDate: React.Dispatch<React.SetStateAction<Date | null>>; 
   datePickerRef: React.RefObject<HTMLDivElement>;
   basketRef: React.RefObject<HTMLDivElement>;
+  confirmationRef: React.RefObject<HTMLDivElement>;
 }
 
 
@@ -147,6 +148,7 @@ export interface BookingProps {
   setEndDate: React.Dispatch<React.SetStateAction<Date | null>>;
   datePickerRef: React.RefObject<HTMLDivElement>;
   basketRef: React.RefObject<HTMLDivElement>;
+  confirmationRef: React.RefObject<HTMLDivElement>;
 }
 
 export interface AvailabilityData {
@@ -221,6 +223,7 @@ export type BasketComponentProps = {
     setIsRegistrationCompleted: (isComplete: boolean) => void;
     isRegistrationCompleted: boolean;
     basketRef: React.RefObject<HTMLDivElement>;
+    confirmationRef: React.RefObject<HTMLDivElement>;
 };
 
 

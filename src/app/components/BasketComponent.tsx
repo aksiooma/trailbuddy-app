@@ -60,11 +60,23 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
     user,
     setIsRegistrationCompleted,
     isRegistrationCompleted,
-    basketRef
+    basketRef,
+    confirmationRef
 
 
 }) => {
     const { t } = useLanguage();
+    const scrollToConfirmation = () => {
+        if (confirmationRef.current) {
+            const yOffset = -200;
+            const y = confirmationRef.current.getBoundingClientRect().top + window.scrollY + yOffset;
+
+            window.scrollTo({
+                top: y, 
+                behavior: 'smooth'
+            });
+        }
+    };
 
     useEffect(() => {
         const auth = getAuth();
@@ -95,6 +107,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
 
         loadData();
 
+        
 
         // Reset the flag
         setIsRegistrationCompleted(false);
@@ -106,7 +119,10 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
                 <div className="mt-4">
                     <button
                         className="w-full py-3 px-4 rounded-lg font-medium transition-all duration-300 bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 text-white shadow-lg"
-                        onClick={onHandleCheckout}
+                        onClick={() => {
+                            onHandleCheckout();
+                            scrollToConfirmation();
+                        }}
                     >
                         {t('basket.proceedToCheckout')}
                     </button>
@@ -316,7 +332,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
         return null;
     };
 
-    // Määritellään accessories-array käyttäen t-funktiota
+    // Define the accessories array using the t function
     const accessories = [
         { id: 'helmet', name: t('accessories.helmet'), price: 5 },
         { id: 'lock', name: t('accessories.lock'), price: 3 },
@@ -324,9 +340,9 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
         { id: 'bottle', name: t('accessories.bottle'), price: 2 }
     ];
 
-    // Käytetään accessoriesData-muuttujaa accessories-arrayn sijaan
+    // Use the accessoriesData variable instead of the accessories array
     const getAccessoryName = (accessoryId: string): string => {
-        // Määritellään accessory-nimet käännösten avulla
+        // Define accessory names using the t function
         const accessoryNames: Record<string, string> = {
             'helmet': t ? t('accessories.helmet') : 'Helmet',
             'lock': t ? t('accessories.lock') : 'Lock',
@@ -345,7 +361,7 @@ const BasketComponent: React.FC<BasketComponentProps> = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.5 }}
         >
-            <div className="p-4 border-b border-zinc-700 flex justify-between items-center" ref={basketRef}>
+            <div className="p-4 border-b border-zinc-700 flex justify-between items-center" ref={basketRef} >
                 <h2 className="text-lg font-medium text-white font-metrophic">{t('basket.yourBasket')}</h2>
                 {basket.length > 0 && (
                     <span className="bg-teal-500 text-white text-xs font-medium px-2.5 py-1 rounded-full">

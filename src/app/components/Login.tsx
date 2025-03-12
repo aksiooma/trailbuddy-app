@@ -26,7 +26,8 @@ const Login: React.FC<BookingProps> = ({
     setEndDate, 
     setStartDate, 
     datePickerRef,
-    basketRef,
+    basketRef,  
+    confirmationRef
 }) => {
     const { t } = useLanguage();
     const { 
@@ -80,6 +81,7 @@ const Login: React.FC<BookingProps> = ({
             setEndDate={setEndDate}
             datePickerRef={datePickerRef}
             basketRef={basketRef}
+            confirmationRef={confirmationRef}
         />;
     }
 
