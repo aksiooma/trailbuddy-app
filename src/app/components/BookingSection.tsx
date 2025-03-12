@@ -109,7 +109,7 @@ const BookingSection = forwardRef<HTMLDivElement>((props, ref) => {
     }
     
     return minAvailableQuantity === Infinity ? 0 : minAvailableQuantity;
-  }, [dateAvailability, setDateAvailability]);
+  }, [dateAvailability]);
 
   // update available stock for size
   useEffect(() => {

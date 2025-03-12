@@ -63,7 +63,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
             // Handle the case when no bike is selected
             setSelectedBikeAvailableStock(0);
         }
-    }, [selectedBike, selectedSize]);
+    }, [selectedBike, selectedSize, setSelectedBikeAvailableStock]);
 
 
     //DateRange for recalculating the availability for datepicker
@@ -121,7 +121,7 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
 
         // Update availability data state
         setDateAvailability(newAvailabilityData);
-    }, [allReservations, availableBikes]);
+    }, [allReservations, availableBikes, setDateAvailability]);
 
 
     // Debounce function
