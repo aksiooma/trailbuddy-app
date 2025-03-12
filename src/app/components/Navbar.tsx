@@ -46,7 +46,7 @@ const Navbar: React.FC<NavbarProps> = ({ onBookingClick, onTrailMapsClick, onAbo
         <div className="flex items-center justify-between h-24">
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center space-x-2">
-            <span className="text-white font-bold text-2xl tracking-tight drop-shadow-md font-schibsted">
+            <span className="text-white font-bold text-2xl tracking-wide drop-shadow-md font-clash-display">
               Trail<span className="text-teal-400">Buddy</span>
             </span>
           </div>

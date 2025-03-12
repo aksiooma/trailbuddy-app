@@ -1,17 +1,17 @@
 // components/BookingForm.tsx
 import React, { useState } from 'react';
-import { User, signInWithEmailAndPassword, getAuth } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 import { setAndStoreLoginMethod } from './utils/utils';
 import { motion } from 'framer-motion';
-import { BookingFormProps } from './Types/types';
-import { useLanguage } from '../context/LanguageContext';
 
-const BookingForm: React.FC<BookingFormProps> = ({ setLoginMethod }) => {
-    const [user, setUser] = useState<User | null>(null);
+import { useLanguage } from '../context/LanguageContext';
+import { useUser } from '../context/AuthContext';
+
+const BookingForm = () => {
+    const {setLoginMethod, setUser, auth } = useUser();  
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const auth = getAuth();
     const [error, setError] = useState('');
     const { t } = useLanguage();
 

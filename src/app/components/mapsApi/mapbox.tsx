@@ -37,7 +37,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
         }
     }));
 
-    // Alusta kartta vain kerran
+    // initialize map once
     useEffect(() => {
         if (mapRef.current || tracks.length === 0) return;
 
@@ -50,10 +50,10 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
             zoom: 10
         });
 
-        // Lisää navigointikontrollit
+        // add navigation controls
         map.addControl(new mapboxgl.NavigationControl(), 'top-right');
         
-        // Lisää mittakaava
+        // add scale control
         map.addControl(new mapboxgl.ScaleControl({
             maxWidth: 100,
             unit: 'metric'
@@ -61,7 +61,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
 
         mapRef.current = map;
 
-        // Käsittele kartan latautuminen
+        // handle map loading
         map.on('load', () => {
             setMapInitialized(true);
             setIsLoading(false);
@@ -74,23 +74,23 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                 mapRef.current = null;
             }
         };
-    }, [tracks.length]); // Riippuu vain tracks.length, ei enhancedStyle
+    }, [tracks.length]); // depends on tracks.length, not enhancedStyle
 
-    // Päivitä kartan tyyli jos se muuttuu
+    // update map style if it changes
     useEffect(() => {
         if (mapRef.current && mapInitialized) {
             const styleId = enhancedStyle
                 ? 'mapbox://styles/mapbox/outdoors-v12'
                 : 'mapbox://styles/teijov/clpqu9lrf013l01pagio68b6v';
                 
-            // Tarkista, että getStyle() palauttaa objektin ja sillä on name-ominaisuus
+            // check if getStyle() returns an object and has a name property
             const currentStyle = mapRef.current.getStyle();
             if (currentStyle && currentStyle.name !== styleId) {
                 mapRef.current.setStyle(styleId);
                 
-                // Tärkeää: Lisää tapahtumankäsittelijä tyylin latautumiselle
+                // important: add event listener for style load
                 mapRef.current.once('style.load', () => {
-                    // Lataa reitit uudelleen tyylin vaihtamisen jälkeen
+                    // reload tracks after style change
                     if (mapRef.current) {
                         loadTracks(mapRef.current);
                     }
@@ -99,12 +99,12 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
         }
     }, [enhancedStyle, mapInitialized]);
 
-    // Lisää uusi useEffect, joka käsittelee kaikki reitit
+    // add new useEffect, which handles all tracks
     useEffect(() => {
         const map = mapRef.current;
         if (!map || !mapInitialized || tracks.length === 0) return;
 
-        // Päivitä reittien värit 
+        // update track colors
         tracks.forEach((track) => {
             const layerId = `route-layer-${track.name}`;
             if (map.getLayer(layerId)) {
@@ -115,7 +115,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
         });
     }, [selectedTrack, mapInitialized, tracks]);
 
-    // Muokataan loadTracks-funktiota useCallback-hookilla
+    // modify loadTracks function with useCallback-hook
     const loadTracks = useCallback(async (map: mapboxgl.Map) => {
         try {
             const fetchGPXFilePaths = async () => {
@@ -123,29 +123,29 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                 return querySnapshot.docs.map(doc => doc.data().path);
             };
 
-            // Tyhjennä vanhat reitit
+            // clear old tracks carefully
             tracks.forEach((track) => {
                 const sourceId = `route-${track.name}`;
                 const layerId = `route-layer-${track.name}`;
                 const shadowLayerId = `${layerId}-shadow`;
                 const clickAreaId = `click-area-${track.name}`;
                 
-                if (map.getLayer(layerId)) map.removeLayer(layerId);
-                if (map.getLayer(shadowLayerId)) map.removeLayer(shadowLayerId);
-                if (map.getLayer(clickAreaId)) map.removeLayer(clickAreaId);
-                if (map.getSource(sourceId)) map.removeSource(sourceId);
+                // remove layers and sources first
+                try {
+                    if (map.getLayer(layerId)) map.removeLayer(layerId);
+                    if (map.getLayer(shadowLayerId)) map.removeLayer(shadowLayerId);
+                    if (map.getLayer(clickAreaId)) map.removeLayer(clickAreaId);
+                    if (map.getSource(sourceId)) map.removeSource(sourceId);
+                } catch (e) {
+                    console.warn(`Error removing layers/sources for ${track.name}:`, e);
+                }
             });
 
-            console.log("Fetching GPX file paths...");
-            const gpxFilePaths = await fetchGPXFilePaths();
-            console.log("GPX file paths:", gpxFilePaths);
-            
-            console.log("Fetching GPX data...");
+            const gpxFilePaths = await fetchGPXFilePaths();       
             const allConvertedData = await fetchGPXData(gpxFilePaths);
-            console.log("GPX data fetched:", allConvertedData.length);
             allConvertedDataRef.current = allConvertedData;
 
-            // Prosessoi reitit
+            // process tracks
             tracks.forEach((track, index) => {
                 if (index >= allConvertedData.length) {
                     console.warn(`No data for track: ${track.name}`);
@@ -163,11 +163,17 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                 const shadowLayerId = `${layerId}-shadow`;
                 const clickAreaId = `click-area-${track.name}`;
 
-                // Lisää reitti
+                // check again if source already exists
+                if (map.getSource(sourceId)) {
+                    console.warn(`Source ${sourceId} already exists, skipping...`);
+                    return;
+                }
+
+                // add track
                 try {
                     map.addSource(sourceId, { type: 'geojson', data: convertedData });
                     
-                    // Lisää varjo
+                    // add shadow
                     map.addLayer({
                         id: shadowLayerId,
                         type: 'line',
@@ -181,7 +187,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                         }
                     });
                     
-                    // Lisää näkyvä reitti
+                    // add visible track
                     map.addLayer({
                         id: layerId,
                         type: 'line',
@@ -194,7 +200,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                         }
                     });
                     
-                    // Lisää laajempi klikkausalue (näkymätön)
+                    // add larger click area (invisible)
                     map.addLayer({
                         id: clickAreaId,
                         type: 'line',
@@ -207,7 +213,6 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                         }
                     });
                     
-                    console.log(`Added track: ${track.name}`);
                 } catch (error) {
                     console.error(`Error adding track ${track.name}:`, error);
                 }
@@ -221,11 +226,11 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                     map.getCanvas().style.cursor = '';
                 });
                 
-                // Lisää click handler laajemmalle klikkausalueelle
+                // Lisää click ha   ndler laajemmalle klikkausalueelle
                 map.on('click', clickAreaId, () => {
                     onSelectTrack(track.name);
                     
-                    // Korostetaan valittu reitti visuaalisesti
+                    // highlight selected track visually
                     tracks.forEach(t => {
                         const tLayerId = `route-layer-${t.name}`;
                         if (map.getLayer(tLayerId)) {
@@ -242,7 +247,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                         }
                     });
                     
-                    // Zoomaa reittiin
+                    // zoom to track
                     if (track.bounds) {
                         map.fitBounds(track.bounds, {
                             padding: 50,
@@ -251,7 +256,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                     }
                 });
                 
-                // Laske bounds
+                // calculate bounds
                 if (convertedData.features && convertedData.features.length > 0) {
                     let minLon = Infinity;
                     let maxLon = -Infinity;
@@ -270,7 +275,7 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
                         }
                     });
 
-                    // Tallenna bounds-tiedot reittiobjektiin
+                    // save bounds data to track object
                     if (minLon !== Infinity && maxLon !== -Infinity && minLat !== Infinity && maxLat !== -Infinity) {
                         track.bounds = [[minLon, minLat], [maxLon, maxLat]];
                     }
@@ -283,23 +288,28 @@ const MapboxComponent = forwardRef<any, TrackProps>(({ selectedTrack, onSelectTr
         }
     }, [tracks, selectedTrack, onSelectTrack, onMapLoad]);
 
-    // Lisää tämä useEffect kartan alustuksen jälkeen
+    // add this useEffect after map initialization
     useEffect(() => {
         if (mapInitialized && mapRef.current && tracks.length > 0) {
-            console.log("Initializing tracks...");
-            loadTracks(mapRef.current);
+            // Aseta viive, jotta kartta ehtii alustua kunnolla
+            const timer = setTimeout(() => {
+                if (mapRef.current) {
+                    loadTracks(mapRef.current);
+                }
+            }, 500);
+            return () => clearTimeout(timer);
         }
     }, [mapInitialized, tracks.length, loadTracks]);
 
-    // Päivitä kartan koko kun fullscreen-tila muuttuu
+    // update map size when fullscreen state changes
     useEffect(() => {
         const currentMap = mapRef.current;
         if (currentMap) {
             setTimeout(() => {
-                // Käytä tallennettua viitettä
+                // use stored reference
                 currentMap.resize();
                 
-                // Jos reitti on valittu, keskitä siihen
+                // if track is selected, center on it
                 if (selectedTrack) {
                     const track = tracks.find(t => t.name === selectedTrack);
                     if (track && track.bounds) {

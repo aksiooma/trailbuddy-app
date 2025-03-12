@@ -6,25 +6,20 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 
-// Kuvan oletusasetukset
 const commonImageProps = {
     width: 96,
     height: 96,
 };
 
-
 const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike, onSizeSelect, selectedSize, accessories, selectedAccessories, setSelectedAccessories, getAvailableStockForSize, startDate, datePickerRef, userLoggedIn}) => {
     const bikes = useFetchBikes();
     const { t } = useLanguage();
     
-
     const scrollToDatePicker = () => {
         if (datePickerRef.current) {
             datePickerRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     };
-
-
 
     const handleSizeSelect = (size: string) => {
         if (isBikeSizeKey(size)) {
@@ -117,8 +112,6 @@ const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike,
                 </div>
             </div>
 
-
-
             {selectedBike && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -132,9 +125,7 @@ const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike,
                             {sizes.map(size => {
                                 const sizeKey = size as BikeSizeKey;
                                 const bikeStock = selectedBike[sizeKey] || 0;
-                                const availableFromFunction = getAvailableStockForSize ? getAvailableStockForSize(sizeKey) : 0;
-                                console.log(`Size: ${sizeKey}, Bike Stock: ${bikeStock}, Available from function: ${availableFromFunction}`);
-                                
+                                const availableFromFunction = getAvailableStockForSize ? getAvailableStockForSize(sizeKey) : 0;                       
                                 const availableStock = startDate ? availableFromFunction : bikeStock;
                                 
                                 return (

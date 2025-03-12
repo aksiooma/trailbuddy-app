@@ -127,11 +127,6 @@ export interface BookingFlowProps {
   datePickerRef: React.RefObject<HTMLDivElement>;
 }
 
-export interface BookingFormProps {
-  setLoginMethod: React.Dispatch<React.SetStateAction<string>>;
- 
-}
-
 
 export interface BookingProps {
   selectedBike: Bike | null;

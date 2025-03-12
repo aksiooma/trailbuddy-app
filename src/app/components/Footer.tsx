@@ -47,21 +47,21 @@ const Footer = () => {
           {/* Disclaimer */}
           <div className="md:col-span-1">
             <div className="bg-zinc-800/50 p-4 rounded-lg border border-zinc-700">
-              <p className="text-sm text-zinc-300">
-                <span className="font-bold text-rose-500">{t('footer.disclaimer')}</span>
+              <p className="text-sm text-zinc-400">
+                <span className="text-rose-500">{t('footer.disclaimer')}</span>
               </p>
               <p className="text-sm text-zinc-400 mt-2">
-                <span className="font-bold text-rose-500">{t('footer.images')}</span> {t('footer.imagesDisclaimer')}
+                <span className="text-rose-500">{t('footer.images')}</span> {t('footer.imagesDisclaimer')}
               </p>
             </div>
           </div>
 
           {/* Contact & Social */}
           <div className="text-right">
-            <span className="text-white font-bold text-2xl tracking-tight drop-shadow-md font-schibsted">
+            <span className="text-white font-bold text-2xl tracking-wide drop-shadow-md font-clash-display">
               Trail<span className="text-teal-400">Buddy</span>
             </span>
-            <p className="text-zinc-300 mb-4">Teijo Virta</p>
+            <p className="text-zinc-300 mb-4 font-schibsted">Teijo Virta</p>
 
             <div className="flex justify-end space-x-4 mb-4">
               <a

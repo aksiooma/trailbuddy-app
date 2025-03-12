@@ -1,129 +1,48 @@
 // components/Login.tsx
 import React, { useState, useEffect } from 'react';
-import { User, getAuth, onAuthStateChanged, signInAnonymously, GoogleAuthProvider, signInWithPopup, signOut, getAdditionalUserInfo } from "firebase/auth";
 import Booking from './Booking';
 import { BikeSizeKey, BookingProps, RegistrationUserData } from './Types/types'
-import { motion, AnimatePresence } from 'framer-motion';
 import BookingForm from './BookingForm';
 import RegistrationForm from './RegisterationForm';
 import Modal from './RegisterationModal';
 import { useLanguage } from '../context/LanguageContext';
 import { useUser } from '../context/AuthContext';
 
-const Login: React.FC<BookingProps> = ({ selectedAccessories, setSelectedAccessories, accessories, selectedBike, selectedSize, setIsRegistrationCompleted, isRegistrationCompleted, handleAccessoryToggle, startDate, endDate, selectedBikeAvailableStock, dateAvailability, setSelectedBikeAvailableStock, setDateAvailability, setEndDate, setStartDate, datePickerRef, userLoggedIn, setUserLoggedIn }) => {
+const Login: React.FC<BookingProps> = ({ 
+    selectedAccessories, 
+    setSelectedAccessories, 
+    accessories, 
+    selectedBike, 
+    selectedSize, 
+    setIsRegistrationCompleted, 
+    isRegistrationCompleted, 
+    handleAccessoryToggle, 
+    startDate, 
+    endDate, 
+    selectedBikeAvailableStock, 
+    dateAvailability, 
+    setSelectedBikeAvailableStock, 
+    setDateAvailability, 
+    setEndDate, 
+    setStartDate, 
+    datePickerRef
+}) => {
     const { t } = useLanguage();
-    const auth = getAuth();
+    const { 
+        user, 
+        logout, 
+        loginMethod, 
+        handleAnonymousSignIn, 
+        handleGoogleSignIn, 
+        googleLoading, 
+        anonymousLoading, 
+        isRegistrationModalOpen, 
+        setRegistrationModalOpen,
+        userLoggedIn
+    } = useUser();
+    
     const [registrationUserData, setRegistrationUserData] = useState<RegistrationUserData>({ user: null, token: undefined });
     const [isProfileComplete, setIsProfileComplete] = useState(true);
-    const { user, logout, loginMethod, setLoginMethod, setUser } = useUser();
-    const [googleLoading, setGoogleLoading] = useState(false);
-    const [anonymousLoading, setAnonymousLoading] = useState(false);
-
-    // State to control the visibility of the registration modal
-    const [isRegistrationModalOpen, setRegistrationModalOpen] = useState(false);
-
-    useEffect(() => {
-        // Retrieve login method from localStorage
-        const storedLoginMethod = localStorage.getItem('loginMethod');
-        if (storedLoginMethod) {
-            setLoginMethod(storedLoginMethod);
-        }
-    }, [setLoginMethod]);
-
-    useEffect(() => {
-        const unsubscribe = auth.onAuthStateChanged((user) => {
-            if (user) {
-                setUser(user);
-                setUserLoggedIn(true);
-                // Set login method based on user's provider
-                const providerId = user.providerData[0]?.providerId;
-                if (providerId === 'google.com') {
-                    setAndStoreLoginMethod('Google');
-                } else if (providerId === 'password') {
-                    setAndStoreLoginMethod('Email');
-                } else if (user.isAnonymous) {
-                    setAndStoreLoginMethod('Anonymous');
-                }
-            } else {
-                setUser(null);
-                setLoginMethod('');
-                setUserLoggedIn(false);
-            }
-        });
-        return () => unsubscribe();
-    }, [auth, setLoginMethod, setUser, setUserLoggedIn]);
-
-    // Set login method and store in localStorage
-    const setAndStoreLoginMethod = (method: string) => {
-        setLoginMethod(method);
-        localStorage.setItem('loginMethod', method);
-    };
-
-    useEffect(() => {
-        // Listener for auth state changes
-        const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-            setUser(currentUser); // This will be null if not logged in
-        });
-
-        // Cleanup subscription on unmount
-        return () => unsubscribe();
-    }, [auth, setUser]);
-
-    const handleAnonymousSignIn = async () => {
-        try {
-            setAnonymousLoading(true);
-            const result = await signInAnonymously(auth);
-            setUser(result.user);
-            setAndStoreLoginMethod("Anonymous");
-        } catch (error) {
-            console.error(error);
-        } finally {
-            setAnonymousLoading(false);
-        }
-    };
-
-    const [isNewGoogleUser, setIsNewGoogleUser] = useState(false);
-
-    const handleGoogleSignIn = async () => {
-        setGoogleLoading(true);
-        const provider = new GoogleAuthProvider();
-        const auth = getAuth();
-
-        signInWithPopup(auth, provider)
-            .then((result) => {
-                const credential = GoogleAuthProvider.credentialFromResult(result);
-                if (credential) {
-                    const token = credential.accessToken;
-                    const user = result.user;
-
-                    // Use 'false' as a fallback if 'isNewUser' is undefined
-                    const isNewUser = getAdditionalUserInfo(result)?.isNewUser || false;
-                    setIsNewGoogleUser(isNewUser);
-
-                    if (isNewUser) {
-                        setRegistrationUserData({ user: user, token: token });
-                        setRegistrationModalOpen(true);
-                        setIsProfileComplete(false);
-                    } else {
-                        setUser(user);
-                        setAndStoreLoginMethod("Google");
-                    }
-                } else {
-                    console.error("No credentials received from Google sign-in");
-                }
-            }).catch((error) => {
-                console.error("Error during Google Sign-In:", error.message);
-            }).finally(() => {
-                setGoogleLoading(false);
-            });
-    };
-
-    // Adjust the logic to open the registration modal
-    useEffect(() => {
-        if (user && isNewGoogleUser && !isProfileComplete) {
-            setRegistrationModalOpen(true);
-        }
-    }, [user, isNewGoogleUser, isProfileComplete]);
 
     const handleNewUserClick = () => {
         setRegistrationModalOpen(true);
@@ -132,7 +51,6 @@ const Login: React.FC<BookingProps> = ({ selectedAccessories, setSelectedAccesso
     function isBikeSizeKey(size: string | null): size is BikeSizeKey {
         return ['Small', 'Medium', 'Large'].includes(size ?? '');
     }
-
     
     if (user) {
         // Ensure selectedSize is a valid BikeSizeKey or null
@@ -175,7 +93,7 @@ const Login: React.FC<BookingProps> = ({ selectedAccessories, setSelectedAccesso
                     </div>
                     
                     <div className="p-6">
-                        <BookingForm setLoginMethod={setLoginMethod}/>
+                        <BookingForm />
                         
                         <div className="mt-6">
                             <div className="relative">

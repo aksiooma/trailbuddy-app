@@ -1,14 +1,18 @@
 //MainSection.tsx
 'use client';
 
-import React from 'react';
+import React, {useState, useRef } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { useLanguage } from '../context/LanguageContext';
 import Image from 'next/image';
 import 'swiper/css';
-import styles from './styles/MainSection.module.css';
+import { Autoplay } from 'swiper/modules';
+import SwiperCore from 'swiper';
 
 import { MainSectionProps, heroImageProps } from './Types/types';
+
+// Register Autoplay module
+SwiperCore.use([Autoplay]);
 
 const images = [
   {
@@ -25,11 +29,25 @@ const images = [
 
 const MainSection: React.FC<MainSectionProps> = ({ onBookNowClick }) => {
   const { t } = useLanguage();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const swiperRef = useRef<any>(null);
 
   return (
     <div className="main-section mb-10">
       <div className="relative container mx-auto max-w-custom-large h-auto">
-        <Swiper spaceBetween={50} slidesPerView={1}>
+        <Swiper
+          spaceBetween={50}
+          slidesPerView={1}
+          onSlideChange={(swiper) => setCurrentIndex(swiper.activeIndex)}
+          autoplay={{
+            delay: 6500,
+            disableOnInteraction: false, // Continue autoplay after user interaction
+          }}
+          modules={[Autoplay]} // Add Autoplay module
+          onSwiper={(swiper) => {
+            swiperRef.current = swiper;
+          }}
+        >
           {images.map((image, index) => (
             <SwiperSlide key={index}>
               <div className="relative">
@@ -49,8 +67,11 @@ const MainSection: React.FC<MainSectionProps> = ({ onBookNowClick }) => {
 
         <div className="md:block absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center z-10 w-full max-w-4xl px-4 mt-2">
           <div className="relative inline-block">
-            <div className="bg-gradient-to-b from-teal-200 to-indigo-500 opacity-30 blur-sm group-hover:opacity-100 transition duration-300 absolute inset-0 transform scale-100 md:scale-125 splatter-clip-path"></div>
-            <p className='text-4xl sm:text-5xl md:text-8xl mb-4 text-white  font-thin tracking-tight relative z-10'>{t('main.welcome')}</p>
+            <div
+              className={`absolute inset-0 bg-gradient-to-b from-teal-300 via-zinc-900/30 ${currentIndex === 1 ? 'to-rose-700' : 'to-indigo-600'
+                } opacity-30 blur-sm group-hover:opacity-100 transition duration-300 transform scale-100 md:scale-125 splatter-clip-path`}
+            ></div>
+            <p className='text-4xl sm:text-5xl md:text-8xl mb-4 text-white font-thin tracking-tight relative z-10 font-clash-display'>{t('main.welcome')}</p>
             <h1 className="text-4xl sm:text-5xl md:text-8xl font-extrabold mb-4 text-white tracking-tight relative z-10 font-clash-display-bold">
               <span className="text-white"> {t('main.welcomePart1')}</span>
               <span className="text-teal-400">{t('main.welcomePart2')}</span>
@@ -59,7 +80,7 @@ const MainSection: React.FC<MainSectionProps> = ({ onBookNowClick }) => {
 
           <div className="relative mt-2 md:mt-10">
             <div className="absolute inset-0 bg-gradient-to-b from-rose-200 to-orange-400 splatter-clip-path opacity-60 blur-sm group-hover:opacity-100 transition duration-300 scale-100 md:scale-125 rounded-full"></div>
-            <p className="relative text-1xl sm:text-3xl md:text-3xl mb-4 text-white font-thin tracking-tight z-10 font-inter">
+            <p className="relative text-1xl sm:text-3xl md:text-3xl mb-4 text-white font-thin tracking-tight z-10 font-clash-display">
               {t('main.subtitle')}
             </p>
           </div>
@@ -76,7 +97,7 @@ const MainSection: React.FC<MainSectionProps> = ({ onBookNowClick }) => {
         </div>
       </div>
 
-      <div className="container mx-auto max-w-custom-large">
+      <div className="container mx-auto max-w-custom-large font-clash-display">
         <div className="bg-gradient-to-b from-zinc-900 to-zinc-1000 py-6 rounded-b-lg w-full shadow-lg">
           <p className="text-xl md:text-2xl lg:text-3xl text-white text-center px-5">
             <span className="font-light">{t('main.descriptionPart1')}</span>
