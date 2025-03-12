@@ -1,6 +1,6 @@
 //BikeSelector.tsx
 import React from 'react';
-import {BikeSelectorProps, BikeSizeKey } from './Types/types'
+import { BikeSelectorProps, BikeSizeKey } from './Types/types'
 import { useFetchBikes } from './hooks/useFetchBikes';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
@@ -11,10 +11,10 @@ const commonImageProps = {
     height: 96,
 };
 
-const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike, onSizeSelect, selectedSize, accessories, selectedAccessories, setSelectedAccessories, getAvailableStockForSize, startDate, datePickerRef, userLoggedIn}) => {
+const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike, onSizeSelect, selectedSize, accessories, selectedAccessories, setSelectedAccessories, getAvailableStockForSize, startDate, datePickerRef }) => {
     const bikes = useFetchBikes();
     const { t } = useLanguage();
-    const { user } = useUser();
+    const { user } = useUser();    
     const scrollToDatePicker = () => {
         if (datePickerRef.current) {
             datePickerRef.current.scrollIntoView({ behavior: 'smooth' });
@@ -125,9 +125,9 @@ const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike,
                             {sizes.map(size => {
                                 const sizeKey = size as BikeSizeKey;
                                 const bikeStock = selectedBike[sizeKey] || 0;
-                                const availableFromFunction = getAvailableStockForSize ? getAvailableStockForSize(sizeKey) : 0;                       
+                                const availableFromFunction = getAvailableStockForSize ? getAvailableStockForSize(sizeKey) : 0;
                                 const availableStock = startDate ? availableFromFunction : bikeStock;
-                                
+
                                 return (
                                     <button
                                         key={size}
@@ -208,17 +208,17 @@ const BikeSelector: React.FC<BikeSelectorProps> = ({ onSelectBike, selectedBike,
                 </motion.div>
             )}
 
-            {user && (
-                <div className="flex justify-center mt-10 md:hidden"> 
+            {selectedBike && selectedSize && user && (
+                <div className="flex justify-center mt-10 md:hidden">
                     <button
                         onClick={scrollToDatePicker}
-                    className="relative bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 px-6 py-3 rounded-lg text-white font-medium 
+                        className="relative bg-gradient-to-r from-teal-500 to-indigo-600 hover:from-teal-400 hover:to-indigo-500 px-6 py-3 rounded-lg text-white font-medium 
                                   transition-all duration-300 flex items-center space-x-2 shadow-xl"
-                >
-                    <span>{t('bike.continue')}</span>
-                    <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                    </svg>
+                    >
+                        <span>{t('bike.continue')}</span>
+                        <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </svg>
                     </button>
                 </div>
             )}

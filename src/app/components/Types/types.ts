@@ -1,5 +1,5 @@
 import { User } from "firebase/auth";
-import { Firestore, Timestamp } from "firebase/firestore";
+import { Firestore } from "firebase/firestore";
 
 //Registeration and Login related
 export interface RegistrationUserData {
@@ -68,7 +68,6 @@ export interface BikeSelectorProps {
   getAvailableStockForSize: (size: BikeSizeKey) => number;
   startDate: Date | null;
   datePickerRef: React.RefObject<HTMLDivElement>;
-  userLoggedIn: boolean;
 }
 
 
@@ -146,7 +145,6 @@ export interface BookingProps {
   setStartDate: React.Dispatch<React.SetStateAction<Date | null>>;
   setEndDate: React.Dispatch<React.SetStateAction<Date | null>>;
   datePickerRef: React.RefObject<HTMLDivElement>;
-  userLoggedIn: boolean;
   setUserLoggedIn: React.Dispatch<React.SetStateAction<boolean>>;
 }
 

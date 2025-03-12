@@ -568,9 +568,8 @@ const BookingFlow: React.FC<BookingFlowProps> = ({ handleAccessoryToggle, select
                     </div>
 
                     <div className="p-6">
-                        <div className="space-y-6">
-                          
-                                <h3 className="text-lg font-medium text-white mb-4">{t('booking.selectDates')}</h3>
+                        <div className="space-y-6">                          
+                                <h3 className="text-lg font-medium text-white mb-4" ref={datePickerRef}>{t('booking.selectDates')}</h3>
                                 {selectedBike && (
                                     <DatePicker
                                         startDate={startDate}
